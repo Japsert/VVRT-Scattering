@@ -27,7 +27,7 @@ namespace _Project.Ray_Caster.Scripts
             {
                 if (value == doRayTermination) return;
                 doRayTermination = value;
-                callRayTracerChanged();
+                CallRayTracerChanged();
             }
         }
         
@@ -46,7 +46,7 @@ namespace _Project.Ray_Caster.Scripts
             {
                 if (value == distanceBetweenSamples) return;
                 distanceBetweenSamples = value;
-                callRayTracerChanged();
+                CallRayTracerChanged();
             }
         }
         
@@ -96,20 +96,20 @@ namespace _Project.Ray_Caster.Scripts
         {
             AccelerationPrep();
             List<TreeNode<RTRay>> rayTrees = new List<TreeNode<RTRay>>();
-            rtSceneManager = RTSceneManager.Get();
-            scene = rtSceneManager.Scene;
-            camera = scene.Camera;
+            RTSceneManager = RTSceneManager.Get();
+            Scene = RTSceneManager.Scene;
+            Camera = Scene.Camera;
         
-            int width = camera.ScreenWidth;
-            int height = camera.ScreenHeight;
+            int width = Camera.ScreenWidth;
+            int height = Camera.ScreenHeight;
             float aspectRatio = (float)width / height;
-            float halfScreenHeight = camera.ScreenDistance * Mathf.Tan(Mathf.Deg2Rad * camera.FieldOfView / 2.0f);
+            float halfScreenHeight = Camera.ScreenDistance * Mathf.Tan(Mathf.Deg2Rad * Camera.FieldOfView / 2.0f);
             float halfScreenWidth = aspectRatio * halfScreenHeight;
             float pixelWidth = halfScreenWidth * 2.0f / width;
             float pixelHeight = halfScreenHeight * 2.0f / height;
             int ssFactor = superSamplingVisual ? SuperSamplingFactor : 1;
             int ssSquared = ssFactor * ssFactor;
-            Vector3 origin = camera.transform.position;
+            Vector3 origin = Camera.transform.position;
             float step = 1f / ssFactor;
         
             // Trace a ray for each pixel. 
@@ -122,7 +122,7 @@ namespace _Project.Ray_Caster.Scripts
                     // Set a base Ray with a zero-distance as the main ray of the pixel
                     float centerPixelX = -halfScreenWidth + pixelWidth * (x + 0.5f);
                     float centerPixelY = -halfScreenHeight + pixelHeight * (y + 0.5f);
-                    Vector3 centerPixel = new Vector3(centerPixelX, centerPixelY, camera.ScreenDistance);
+                    Vector3 centerPixel = new Vector3(centerPixelX, centerPixelY, Camera.ScreenDistance);
                     TreeNode<RTRay> rayTree = new TreeNode<RTRay>(new RCRay());
                     rayTree.Data = new RCRay(origin, centerPixel / centerPixel.magnitude, 0f, RTRay.RayType.Normal, 0, 0, 0);
         
@@ -135,8 +135,8 @@ namespace _Project.Ray_Caster.Scripts
                             float pixelX = centerPixelX + pixelWidth * (step * (0.5f + supX) - 0.5f);
         
                             // Create and rotate the pixel location. Note that the camera looks along the positive z-axis.
-                            Vector3 pixel = new Vector3(pixelX, pixelY, camera.ScreenDistance);
-                            pixel = camera.transform.rotation * pixel;
+                            Vector3 pixel = new Vector3(pixelX, pixelY, Camera.ScreenDistance);
+                            pixel = Camera.transform.rotation * pixel;
         
                             // This is the distance between the pixel on the screen and the origin. We need this to compensate
                             // for the length of the returned RTRay. Since we have this factor we also use it to normalize this
@@ -325,12 +325,12 @@ namespace _Project.Ray_Caster.Scripts
         /// <returns>The hitinfo of the ray</returns>
         private CasterHitInfo GetCasterHitInfo(Vector3 origin, Vector3 direction)
         {
-            if (!Physics.Raycast(origin, direction, out RaycastHit hit1, Mathf.Infinity, rayTracerLayer))
+            if (!Physics.Raycast(origin, direction, out RaycastHit hit1, Mathf.Infinity, RayTracerLayer))
             {
                 return new CasterHitInfo(ref hit1, ref hit1, false);
             }
             // To get the entry and exit point we cast a second physics ray. hit1 will contain the entry point, and hit2 will contain the exit point
-            Physics.Raycast(hit1.point + direction * 0.001f, direction, out RaycastHit hit2, Mathf.Infinity, rayTracerLayer);
+            Physics.Raycast(hit1.point + direction * 0.001f, direction, out RaycastHit hit2, Mathf.Infinity, RayTracerLayer);
             return new CasterHitInfo(ref hit1, ref hit2, true);
         }
         
