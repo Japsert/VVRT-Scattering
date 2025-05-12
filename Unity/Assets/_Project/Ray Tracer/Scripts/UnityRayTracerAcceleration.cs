@@ -146,7 +146,7 @@ namespace _Project.Ray_Tracer.Scripts
 
             
             // Hit AABB, so check for intersection with object itself
-            bool intersected = Physics.Raycast(origin, direction, out hit, Mathf.Infinity, rayTracerLayer);
+            bool intersected = Physics.Raycast(origin, direction, out hit, Mathf.Infinity, RayTracerLayer);
             
             Vector3 point = raycast.origin + raycast.direction * distance;
             // Tell AABB script to draw the hit point.
@@ -168,13 +168,13 @@ namespace _Project.Ray_Tracer.Scripts
             }
 
             RTMesh mesh = hit.transform.GetComponent<RTMesh>();
-            HitInfo hitInfo = new HitInfo(ref hit, ref direction, ref mesh);
+            HitInfo hitInfo = new HitInfo(hit, direction, mesh);
 
             // Add the ambient component once, regardless of the number of lights.
             Color color = hitInfo.Ambient * hitInfo.Color;
 
             // Add diffuse and specular components.
-            foreach (RTLight light in scene.PointLights)
+            foreach (RTLight light in Scene.PointLights)
             {
                 Vector3 lightVector = (light.transform.position - hit.point).normalized;
 
@@ -274,7 +274,7 @@ namespace _Project.Ray_Tracer.Scripts
             }
             
             // Hit OctreeRoot, so check for intersection with object itself
-            bool intersected = Physics.Raycast(origin, direction, out hit, Mathf.Infinity, rayTracerLayer);
+            bool intersected = Physics.Raycast(origin, direction, out hit, Mathf.Infinity, RayTracerLayer);
 
             if (!intersected)
             {
@@ -288,13 +288,13 @@ namespace _Project.Ray_Tracer.Scripts
             }
 
             RTMesh mesh = hit.transform.GetComponent<RTMesh>();
-            HitInfo hitInfo = new HitInfo(ref hit, ref direction, ref mesh);
+            HitInfo hitInfo = new HitInfo(hit, direction, mesh);
 
             // Add the ambient component once, regardless of the number of lights.
             Color color = hitInfo.Ambient * hitInfo.Color;
 
             // Add diffuse and specular components.
-            foreach (RTLight light in scene.PointLights)
+            foreach (RTLight light in Scene.PointLights)
             {
                 Vector3 lightVector = (light.transform.position - hit.point).normalized;
 
@@ -338,7 +338,7 @@ namespace _Project.Ray_Tracer.Scripts
 
            
 
-            bool intersected = Physics.Raycast(origin, direction, out hit, Mathf.Infinity, rayTracerLayer);
+            bool intersected = Physics.Raycast(origin, direction, out hit, Mathf.Infinity, RayTracerLayer);
 
             // If we did not hit anything we return the background color.
             if (!intersected)
@@ -348,13 +348,13 @@ namespace _Project.Ray_Tracer.Scripts
             }
 
             RTMesh mesh = hit.transform.GetComponent<RTMesh>();
-            HitInfo hitInfo = new HitInfo(ref hit, ref direction, ref mesh);
+            HitInfo hitInfo = new HitInfo(hit, direction, mesh);
 
             // Add the ambient component once, regardless of the number of lights.
             Color color = hitInfo.Ambient * hitInfo.Color;
 
             // Add diffuse and specular components.
-            foreach (RTLight light in scene.PointLights)
+            foreach (RTLight light in Scene.PointLights)
             {
                 Vector3 lightVector = (light.transform.position - hit.point).normalized;
 
@@ -402,7 +402,7 @@ namespace _Project.Ray_Tracer.Scripts
                 return BackgroundColor;
             }
        
-            bool intersected = Physics.Raycast(origin, direction, out hit, Mathf.Infinity, rayTracerLayer);
+            bool intersected = Physics.Raycast(origin, direction, out hit, Mathf.Infinity, RayTracerLayer);
 
             // If we did not hit anything we return the background color.
             if (!intersected)
@@ -411,13 +411,13 @@ namespace _Project.Ray_Tracer.Scripts
             }
 
             RTMesh mesh = hit.transform.GetComponent<RTMesh>();
-            HitInfo hitInfo = new HitInfo(ref hit, ref direction, ref mesh);
+            HitInfo hitInfo = new HitInfo(hit, direction, mesh);
 
             // Add the ambient component once, regardless of the number of lights.
             Color color = hitInfo.Ambient * hitInfo.Color;
 
             // Add diffuse and specular components.
-            foreach (RTLight light in scene.PointLights)
+            foreach (RTLight light in Scene.PointLights)
             {
                 Vector3 lightVector = (light.transform.position - hit.point).normalized;
 

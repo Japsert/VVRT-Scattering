@@ -191,8 +191,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
         /// <summary>
         /// Whether the mesh is transparent a mirror or just opaque.
         /// </summary>
-        [SerializeField] 
-        public ObjectType Type;
+        public ObjectType type;
 
         [SerializeField]
         private bool shadeSmooth = true;
@@ -213,7 +212,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
 
         public void ChangeObjectType(ObjectType type)
         {
-            if (Type == type) return;
+            if (this.type == type) return;
 
             switch (type)
             {
@@ -244,7 +243,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
                     break;
             }
 
-            Type = type;
+            this.type = type;
             OnMeshChanged?.Invoke();
             OnMaterialTypeChanged?.Invoke();
         }
@@ -280,7 +279,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
             // Find the material used by this object and verify that it uses the correct shader.
             Material = GetComponent<MeshRenderer>().material;
             
-            Type = Material.name.Replace("(Instance)","").Trim()  switch
+            type = Material.name.Replace("(Instance)","").Trim()  switch
             {
                 "Glass" or "Volume" => ObjectType.Transparent,
                 "Mirror" => ObjectType.Mirror,
@@ -289,10 +288,10 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
             
             if (Material == null)
                 Debug.LogError("Could not find material of " + gameObject.name + "!");
-            if (Type == ObjectType.Transparent && Material.shader != TransparentShader)
+            if (type == ObjectType.Transparent && Material.shader != TransparentShader)
                 Debug.LogError("Material of " + gameObject.name + " uses a non transparent shader or a shader not" +
                     " supported by the ray tracer!");
-            if (Type != ObjectType.Transparent && Material.shader != StandardShader)
+            if (type != ObjectType.Transparent && Material.shader != StandardShader)
                 Debug.LogError("Material of " + gameObject.name + " uses a transparent shader or a shader not" +
                     " supported by the ray tracer!");
 
