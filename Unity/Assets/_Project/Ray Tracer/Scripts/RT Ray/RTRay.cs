@@ -20,7 +20,8 @@ namespace _Project.Ray_Tracer.Scripts.RT_Ray
             Shadow,
             Light,
             AreaShadow,
-            AreaLight
+            AreaLight,
+            Volume
         }
 
         /// <summary>

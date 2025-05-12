@@ -184,7 +184,8 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
         {
             Opaque,
             Transparent,
-            Mirror
+            Mirror,
+            Volume
         }
 
         /// <summary>
@@ -281,7 +282,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
             
             Type = Material.name.Replace("(Instance)","").Trim()  switch
             {
-                "Glass" => ObjectType.Transparent,
+                "Glass" or "Volume" => ObjectType.Transparent,
                 "Mirror" => ObjectType.Mirror,
                 _ => ObjectType.Opaque
             };

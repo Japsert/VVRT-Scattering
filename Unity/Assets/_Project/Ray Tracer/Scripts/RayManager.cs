@@ -425,13 +425,11 @@ namespace _Project.Ray_Tracer.Scripts
                     return reflectMaterial;
                 case RTRay.RayType.Refract:
                     return refractMaterial;
-                case RTRay.RayType.Normal:
+                case RTRay.RayType.Normal or RTRay.RayType.Volume:
                     return normalMaterial;
-                case RTRay.RayType.Shadow:
-                case RTRay.RayType.AreaShadow:
+                case RTRay.RayType.Shadow or RTRay.RayType.AreaShadow:
                     return shadowMaterial;
-                case RTRay.RayType.Light:
-                case RTRay.RayType.AreaLight:
+                case RTRay.RayType.Light or RTRay.RayType.AreaLight:
                     return lightMaterial;
                 default:
                     Debug.LogError("Unrecognized ray type " + type + "!");
