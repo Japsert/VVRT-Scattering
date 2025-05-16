@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using _Project.Ray_Tracer.Scripts.RT_Ray;
 using _Project.Ray_Tracer.Scripts.Utility;
 using UnityEngine;
-using UnityEngine.Serialization;
-using UnityEditor;
 
 namespace _Project.Ray_Tracer.Scripts
 {
@@ -239,6 +237,8 @@ namespace _Project.Ray_Tracer.Scripts
         [SerializeField] private Material shadowMaterialTransparent;
         [SerializeField] private Material lightMaterial;
         [SerializeField] private Material lightMaterialTransparent;
+        [SerializeField] private Material volumeMaterial;
+        [SerializeField] private Material volumeMaterialTransparent;
         [SerializeField] private Material colorRayMaterial;
         [SerializeField] protected Material colorRayMaterialTransparent;
         [SerializeField] private Material errorMaterial;
@@ -425,12 +425,14 @@ namespace _Project.Ray_Tracer.Scripts
                     return reflectMaterial;
                 case RTRay.RayType.Refract:
                     return refractMaterial;
-                case RTRay.RayType.Normal or RTRay.RayType.Volume:
+                case RTRay.RayType.Normal:
                     return normalMaterial;
                 case RTRay.RayType.Shadow or RTRay.RayType.AreaShadow:
                     return shadowMaterial;
                 case RTRay.RayType.Light or RTRay.RayType.AreaLight:
                     return lightMaterial;
+                case RTRay.RayType.Volume:
+                    return volumeMaterial;
                 default:
                     Debug.LogError("Unrecognized ray type " + type + "!");
                     return errorMaterial;
@@ -463,6 +465,8 @@ namespace _Project.Ray_Tracer.Scripts
                 case RTRay.RayType.Light:
                 case RTRay.RayType.AreaLight:
                     return new Material(lightMaterialTransparent);
+                case RTRay.RayType.Volume:
+                    return new Material(volumeMaterialTransparent);
                 default:
                     Debug.LogError("Unrecognized ray type " + type + "!");
                     return errorMaterial;
@@ -593,30 +597,32 @@ namespace _Project.Ray_Tracer.Scripts
                 int index = selectedRayCoordinates.x + width * selectedRayCoordinates.y;
                 selectedRay = rays[index];
                 foreach (var ray in selectedRay.Children) // Skip the zero-length base-ray 
-                    DrawRayTree(ray);
+                    DrawRayTree(ray, true);
             }
             // Otherwise we draw all ray trees.
             else
                 foreach (var pixel in rays)
                     foreach (var ray in pixel.Children) // Skip the zero-length base-ray 
-                        DrawRayTree(ray);
+                        DrawRayTree(ray, false);
         }
 
-        protected void DrawRayTree(TreeNode<RTRay> rayTree)
+        protected void DrawRayTree(TreeNode<RTRay> rayTree, bool drawSamples)
         {
-            if ((HideNoHitRays && rayTree.Data.Type == RTRay.RayType.NoHit) ||
-                (HideNegligibleRays && rayTree.Data.Contribution <= rayHideThreshold))
+            RTRay ray = rayTree.Data;
+            if ((HideNoHitRays && ray.Type == RTRay.RayType.NoHit) ||
+                (HideNegligibleRays && ray.Contribution <= rayHideThreshold))
             {
                 HideRays(rayTree);
                 return;
             }
 
-            RayObject rayObject = rayObjectPool.GetRayObject(rayTree.Data.ObjectPoolIndex, rayTree.Data.AreaRay);
-            rayObject.Draw(GetRayRadius(rayTree));
+            RayObject rayObject = rayObjectPool.GetRayObject(ray.ObjectPoolIndex, ray.AreaRay);
+            rayObject.BodyObject.Draw(GetRayRadius(rayTree));
+            rayObject.Draw(GetRayRadius(rayTree), drawSamples);
 
             if (!rayTree.IsLeaf())
                 foreach (var child in rayTree.Children)
-                    DrawRayTree(child);
+                    DrawRayTree(child, drawSamples);
         }
 
         /// <summary>
@@ -647,7 +653,7 @@ namespace _Project.Ray_Tracer.Scripts
                     int index = selectedRayCoordinates.x + width * selectedRayCoordinates.y;
                     selectedRay = rays[index];
                     foreach (var ray in selectedRay.Children) // Skip the zero-length base-ray 
-                        animationDone &= DrawRayTreeAnimated(ray, distanceToDraw);
+                        animationDone &= DrawRayTreeAnimated(ray, distanceToDraw, true);
                 }
                 // If specified we animate the ray trees sequentially (pixel by pixel).
                 else if (animateSequentially)
@@ -655,12 +661,12 @@ namespace _Project.Ray_Tracer.Scripts
                     // Draw all previous ray trees in full.
                     for (int i = 0; i < rayTreeToDraw; ++i)
                         foreach (var ray in rays[i].Children) // Skip the zero-length base-ray 
-                            DrawRayTree(ray);
+                            DrawRayTree(ray, false);
 
                     // Animate the current ray tree. If it is now fully drawn we move on to the next one.
                     bool treeDone = true;
                     foreach(var ray in rays[rayTreeToDraw].Children) // Skip the zero-length base-ray 
-                        treeDone &= DrawRayTreeAnimated(ray, distanceToDraw);
+                        treeDone &= DrawRayTreeAnimated(ray, distanceToDraw, false);
 
                     if (treeDone)
                     {
@@ -675,7 +681,7 @@ namespace _Project.Ray_Tracer.Scripts
                 {
                     foreach (var pixel in rays)
                         foreach (var rayTree in pixel.Children) // Skip the zero-length base-ray 
-                            animationDone &= DrawRayTreeAnimated(rayTree, distanceToDraw);
+                            animationDone &= DrawRayTreeAnimated(rayTree, distanceToDraw, false);
                 }
             }
             // Otherwise we can just draw all rays in full.
@@ -683,7 +689,7 @@ namespace _Project.Ray_Tracer.Scripts
                 DrawRays();
         }
 
-        protected virtual bool DrawRayTreeAnimated(TreeNode<RTRay> rayTree, float distance)
+        protected bool DrawRayTreeAnimated(TreeNode<RTRay> rayTree, float distance, bool drawSamples)
         {
             if ((HideNoHitRays && rayTree.Data.Type == RTRay.RayType.NoHit) ||
                 (HideNegligibleRays && rayTree.Data.Contribution < rayHideThreshold))
@@ -693,9 +699,9 @@ namespace _Project.Ray_Tracer.Scripts
             }
 
             RayObject rayObject = rayObjectPool.GetRayObject(rayTree.Data.ObjectPoolIndex, rayTree.Data.AreaRay);
-            rayObject.Draw(GetRayRadius(rayTree), distance);
+            rayObject.Draw(GetRayRadius(rayTree), distance, drawSamples);
 
-            float leftover = distance - rayObject.DrawLength;
+            float leftover = distance - rayObject.BodyObject.DrawLength;
 
             // If this ray is not at its full length we are not done animating.
             if (leftover <= 0.0f)
@@ -707,14 +713,14 @@ namespace _Project.Ray_Tracer.Scripts
             // Otherwise we start animating the children.
             bool done = true;
             foreach (var child in rayTree.Children)
-                done &= DrawRayTreeAnimated(child, leftover);
+                done &= DrawRayTreeAnimated(child, leftover, drawSamples);
             return done;
         }
 
         public void HideRays(TreeNode<RTRay> rayTree)
         {
             rayObjectPool.HideRayObject(rayTree.Data.ObjectPoolIndex, rayTree.Data.AreaRay);
-            rayTree.Children.ForEach(child => HideRays(child));
+            rayTree.Children.ForEach(HideRays);
         }
     }
 }

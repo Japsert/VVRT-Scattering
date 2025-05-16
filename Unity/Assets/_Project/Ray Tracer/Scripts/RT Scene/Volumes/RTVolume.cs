@@ -1,12 +1,49 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
 {
     public class RTVolume : RTMesh
     {
+        // Coefficients
+        [SerializeField] private float absorption = 0.5f;
+        public float Absorption
+        {
+            get => absorption;
+            set
+            {
+                absorption = value;
+                Extinction = scattering + absorption;
+            }
+        }
+
+        [SerializeField] private float scattering = 0.5f;
+        public float Scattering
+        {
+            get => scattering;
+            set
+            {
+                scattering = value;
+                Extinction = scattering + absorption;
+            }
+        }
+
+        public float Extinction { get; private set; }
+        
+        [SerializeField] private float emission = 0.5f;
+
+        [SerializeField] private float g = 0.5f;
+        public float G => g; // henyey-greenstein parameter
+
         private float[,,] _grid;
         private IntVector3 _gridSize;
+
+        public RTVolume()
+        {
+            Extinction = absorption + scattering;
+        }
 
         private struct IntVector3
         {
@@ -122,9 +159,29 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
 
         public float DensityAt(Vector3 worldPoint)
         {
-            Vector3 gridPoint = WorldPointToGridPoint(worldPoint);
-            return NearestNeighbor(gridPoint);
-            // return TriLinearInterpolation(gridPoint);
+            try
+            {
+                Vector3 gridPoint = WorldPointToGridPoint(worldPoint);
+                return NearestNeighbor(gridPoint);
+                // return TriLinearInterpolation(gridPoint);
+            }
+            catch (Exception e)
+            {
+                Collider collider = GetComponent<Collider>();
+                if (collider.bounds.Contains(worldPoint))
+                {
+                    // Debug.LogError("point: " + worldPoint + " while volume is at " + Position + " and scale " + Scale);
+                    Debug.LogError("bounds contain point");
+                }
+                else
+                {
+                    Debug.LogError("bounds don't contain point, how? point is " + worldPoint + " and volume is at " +
+                                   Position + " and scale " + Scale);
+                    Debug.Log($"Sample point: {worldPoint}, collider bounds: {collider.bounds}");
+                    Debug.Log($"Contains result: {collider.bounds.Contains(worldPoint)}");
+                }
+                return 0;
+            }
         }
 
         private void Start()

@@ -64,7 +64,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7711cea9e4c6e4b6397d3b7b75165524, type: 2}
+  - {fileID: 2100000, guid: 75230689a2b02f14c911d996c1f08ecb, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -157,5 +157,9 @@ MonoBehaviour:
   OnMeshSelected:
     m_PersistentCalls:
       m_Calls: []
-  Type: 3
+  type: 3
   shadeSmooth: 0
+  absorption: 0.5
+  scattering: 0.5
+  emission: 0.5
+  g: 0.5

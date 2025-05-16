@@ -5,17 +5,18 @@ using UnityEngine;
 namespace _Project.Ray_Tracer.Scripts.RT_Ray
 {
     /// <summary>
-    /// A simple class used to pool <see cref="RayObject"/>s for drawing by the <see cref="RayManager"/>. For more
+    /// A simple class used to pool <see cref="RayBodyObject"/>s for drawing by the <see cref="RayManager"/>. For more
     /// information on object pooling in Unity see: https://learn.unity.com/tutorial/introduction-to-object-pooling.
     /// Note that our implementation differs a somewhat because we have optimized the pool for our specific use case.
     /// </summary>
+    // TODO: This implementation can probably be simplified a lot (for example using Unity's ObjectPool<T>).
     public class RayObjectPool
     {
         private readonly List<RayObject> rayObjects;
         private readonly List<RayObject> areaRayObjects;
-        private readonly RayObject rayPrefab;
-        private readonly RayObject areaRayPrefab;
-        private readonly Transform parent;
+        private readonly RayObject _rayPrefab;
+        private readonly RayObject _areaRayPrefab;
+        private readonly Transform _parent;
         private int nextIndex;
         private int nextAreaIndex;
 
@@ -27,9 +28,9 @@ namespace _Project.Ray_Tracer.Scripts.RT_Ray
         /// <param name="parent"> The parent object of all <see cref="RayObject"/>s instantiated by this pool. </param>
         public RayObjectPool(RayObject rayPrefab, RayObject areaRayPrefab, int initialAmount, Transform parent)
         {
-            this.rayPrefab = rayPrefab;
-            this.areaRayPrefab = areaRayPrefab;
-            this.parent = parent;
+            _rayPrefab = rayPrefab;
+            _areaRayPrefab = areaRayPrefab;
+            _parent = parent;
 
             rayObjects = new List<RayObject>(initialAmount);
             areaRayObjects = new List<RayObject>(initialAmount / 16);
@@ -38,16 +39,16 @@ namespace _Project.Ray_Tracer.Scripts.RT_Ray
         }
 
         /// <summary>
-        /// Reloads the materials for all rays in this <see cref="RayObject"/>.
+        /// Reloads the materials for all rays in this <see cref="RayBodyObject"/>.
         /// </summary>
         public void ReloadMaterials()
         {
-            rayObjects.ForEach(ray => ray.ReloadMaterial());
-            areaRayObjects.ForEach(areaRay => areaRay.ReloadMaterial());
+            rayObjects.ForEach(ray => ray.BodyObject.ReloadMaterial());
+            areaRayObjects.ForEach(areaRay => areaRay.BodyObject.ReloadMaterial());
         }
 
         /// <summary>
-        /// Deactivate all <see cref="RayObject"/>s in this pool. This also marks the objects as unused.
+        /// Deactivate all <see cref="RayBodyObject"/>s in this pool. This also marks the objects as unused.
         /// </summary>
         public void DeactivateAll()
         {
@@ -58,7 +59,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Ray
         }
 
         /// <summary>
-        /// Destroy all unused <see cref="RayObject"/>s in this pool.
+        /// Destroy all unused <see cref="RayBodyObject"/>s in this pool.
         /// </summary>
         private void CleanUp()
         {
@@ -81,7 +82,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Ray
         }
 
         /// <summary>
-        /// Mark all <see cref="RayObject"/>s in this pool unused. This does not mean they are deactivated, but they
+        /// Mark all <see cref="RayBodyObject"/>s in this pool unused. This does not mean they are deactivated, but they
         /// will be returned by <see cref="GetRayObject"/>. The intended usage is to first call this function, then make
         /// all objects needed using <see cref="MakeRayObjects"/> and finally deactivate all unused objects left active
         /// by calling <see cref="CleanUp"/>.
@@ -123,10 +124,10 @@ namespace _Project.Ray_Tracer.Scripts.RT_Ray
         }
 
         /// <summary>
-        /// Get an unused <see cref="RayObject"/> from the pool and, if necessary, activate it. If there are no unused
+        /// Get an unused <see cref="RayBodyObject"/> from the pool and, if necessary, activate it. If there are no unused
         /// objects in the pool a new one will be instantiated and returned.
         /// </summary>
-        /// <returns> An unused activated <see cref="RayObject"/> from the pool. </returns>
+        /// <returns> An unused activated <see cref="RayBodyObject"/> from the pool. </returns>
         private int MakeRayObject(RTRay ray)
         {
             if (ray.AreaRay)
@@ -151,7 +152,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Ray
             if (nextIndex < rayObjects.Count) return;
 
             // Else we add a new object to the pool.
-            rayObjects.Add(Object.Instantiate(rayPrefab, parent));
+            rayObjects.Add(Object.Instantiate(_rayPrefab, _parent));
         }
 
         private void MakeAreaRayObject()
@@ -160,7 +161,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Ray
             if (nextAreaIndex < areaRayObjects.Count) return;
 
             // Else we add a new arearay object to the areapool.
-            areaRayObjects.Add(Object.Instantiate(areaRayPrefab, parent));
+            areaRayObjects.Add(Object.Instantiate(_areaRayPrefab, _parent));
         }
 
         public RayObject GetRayObject(int index, bool areaRay)

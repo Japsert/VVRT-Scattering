@@ -140,7 +140,7 @@ MonoBehaviour:
   OnMeshSelected:
     m_PersistentCalls:
       m_Calls: []
-  Type: 0
+  type: 0
   shadeSmooth: 0
 --- !u!114 &6716819065396824742
 MonoBehaviour:
@@ -175,3 +175,7 @@ MonoBehaviour:
   SizeX: 100
   SizeY: 100
   SizeZ: 100
+  loadVoxelGridProgressFill: {fileID: 0}
+  loadVoxelGridtaskProgress: {fileID: 0}
+  selectedVoxelGrid: 0
+  progressBar: {fileID: 0}
