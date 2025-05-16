@@ -1,3 +1,8 @@
+using System.Collections.Generic;
+using _Project.Ray_Tracer.Scripts.RT_Ray.Events;
+using _Project.Ray_Tracer.Scripts.RT_Ray.Events.Volume_Absorption;
+using _Project.Ray_Tracer.Scripts.RT_Ray.Events.Volume_Sample;
+using _Project.Ray_Tracer.Scripts.RT_Scene.Volumes;
 using UnityEngine;
 
 namespace _Project.Ray_Tracer.Scripts.RT_Ray
@@ -23,6 +28,12 @@ namespace _Project.Ray_Tracer.Scripts.RT_Ray
             AreaLight,
             Volume
         }
+
+        // TODO: create child class RTVolumeRay
+        public VolumeSample Sample { get; set; }
+        public Vector3 SamplePos { get; }
+        public bool Absorbed = false;
+        public VolumeAbsorption Absorption { get; set; }
 
         /// <summary>
         /// The origin from which this ray was traced. Generally this is the camera position.
@@ -52,19 +63,14 @@ namespace _Project.Ray_Tracer.Scripts.RT_Ray
         /// </summary>
         public RayType Type { get; set; }
 
-        private float contribution;
         /// <summary>
         /// The contribution of this ray.
         /// </summary>
-        public float Contribution
-        {
-            get { return contribution; }
-            set { contribution = value; }
-        }
+        public float Contribution { get; set; }
 
         public Vector3[] AreaLightPoints { get; set; }
 
-        public bool AreaRay { get; set; } = false;
+        public bool AreaRay { get; set; }
 
         /// <summary>
         /// Construct a default ray. The resulting ray is technically valid, but should only be used in the
@@ -97,9 +103,16 @@ namespace _Project.Ray_Tracer.Scripts.RT_Ray
             Contribution = type == RayType.NoHit || type == RayType.Shadow ? 0.0f : 1.0f;
         }
 
-        public RTRay(Vector3 origin, Vector3 direction, float lengthScale, Color color, RayType type, Vector3[] areaLightPoints)
-        :
-            this(origin, direction, lengthScale, color, type)
+        public RTRay(Vector3 origin, Vector3 direction, float length, Vector3 samplePos, Color color,
+            RayType rayType)
+            : this(origin, direction, length, color, rayType)
+        {
+            SamplePos = samplePos;
+        }
+
+        public RTRay(Vector3 origin, Vector3 direction, float lengthScale, Color color, RayType type,
+            Vector3[] areaLightPoints)
+            : this(origin, direction, lengthScale, color, type)
         {
             AreaRay = true;
             AreaLightPoints = areaLightPoints;

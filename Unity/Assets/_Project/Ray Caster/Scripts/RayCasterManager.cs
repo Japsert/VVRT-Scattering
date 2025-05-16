@@ -253,7 +253,7 @@ namespace _Project.Ray_Caster.Scripts
                     for (int i = 0; i < rayTreeToDraw; ++i)
                         foreach (TreeNode<RTRay> ray in rays[i].Children) // Skip the zero-length base-ray 
                         {
-                            DrawRayTree(ray);
+                            DrawRayTree(ray, false);
                             DrawSamplesInstant(ray);
                         }
                             
@@ -291,7 +291,7 @@ namespace _Project.Ray_Caster.Scripts
         /// <param name="rayTree">The ray tree to draw</param>
         /// <param name="distance">The maximum distance the ray tree will be drawn</param>
         /// <returns></returns>
-        protected override bool DrawRayTreeAnimated(TreeNode<RTRay> rayTree, float distance)
+        protected bool DrawRayTreeAnimated(TreeNode<RTRay> rayTree, float distance)
         {
             RCRay rcRay = rayTree.Data as RCRay;
             if ((HideNoHitRays && rayTree.Data.Type == RTRay.RayType.NoHit) ||
@@ -302,9 +302,9 @@ namespace _Project.Ray_Caster.Scripts
             }
 
             RayObject rayObject = rayObjectPool.GetRayObject(rayTree.Data.ObjectPoolIndex, rayTree.Data.AreaRay);
-            rayObject.Draw(GetRayRadius(rayTree), distance);
+            rayObject.BodyObject.Draw(GetRayRadius(rayTree), distance);
 
-            float leftover = distance - rayObject.DrawLength;
+            float leftover = distance - rayObject.BodyObject.DrawLength;
             // If this is the ray section in the voxel grid we need to draw samples
             if (rcRay.Samples.Count > 0)
             {
