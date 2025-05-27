@@ -23095,9 +23095,29 @@ MonoBehaviour:
   renderImageButton: {fileID: 0}
   openImageButton: {fileID: 0}
   flyRoRTCameraButton: {fileID: 0}
+  loadVoxelGridWindow: {fileID: 0}
   distanceBetweenSamplesEdit: {fileID: 0}
   VoxelGridDropdown: {fileID: 0}
   CompositingMethodDropdown: {fileID: 0}
+  opacityCutoffValueEdit: {fileID: 0}
+  matchingDensityEdit: {fileID: 0}
+  showOpacity: {fileID: 0}
+  doRayTermination: {fileID: 0}
+  density1: {fileID: 0}
+  color1: {fileID: 0}
+  density2: {fileID: 0}
+  color2: {fileID: 0}
+  density3: {fileID: 0}
+  color3: {fileID: 0}
+  density4: {fileID: 0}
+  color4: {fileID: 0}
+  density5: {fileID: 0}
+  color5: {fileID: 0}
+  histogramImage: {fileID: 0}
+  buckyHistogram: {fileID: 0}
+  bunnyHistogram: {fileID: 0}
+  engineHistogram: {fileID: 0}
+  hazelnutHistogram: {fileID: 0}
 --- !u!114 &4471205584623616971
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32860,9 +32880,29 @@ MonoBehaviour:
   renderImageButton: {fileID: 3943552579439523588}
   openImageButton: {fileID: 4869545357772491144}
   flyRoRTCameraButton: {fileID: 1042447649911285264}
+  loadVoxelGridWindow: {fileID: 0}
   distanceBetweenSamplesEdit: {fileID: 6723517191301537695}
   VoxelGridDropdown: {fileID: 3881407187436250600}
   CompositingMethodDropdown: {fileID: 7528153452936271847}
+  opacityCutoffValueEdit: {fileID: 0}
+  matchingDensityEdit: {fileID: 0}
+  showOpacity: {fileID: 0}
+  doRayTermination: {fileID: 0}
+  density1: {fileID: 0}
+  color1: {fileID: 0}
+  density2: {fileID: 0}
+  color2: {fileID: 0}
+  density3: {fileID: 0}
+  color3: {fileID: 0}
+  density4: {fileID: 0}
+  color4: {fileID: 0}
+  density5: {fileID: 0}
+  color5: {fileID: 0}
+  histogramImage: {fileID: 0}
+  buckyHistogram: {fileID: 0}
+  bunnyHistogram: {fileID: 0}
+  engineHistogram: {fileID: 0}
+  hazelnutHistogram: {fileID: 0}
 --- !u!114 &1208845806227580531
 MonoBehaviour:
   m_ObjectHideFlags: 0

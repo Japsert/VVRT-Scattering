@@ -31,21 +31,18 @@ namespace _Project.Ray_Tracer.Scripts.RT_Ray
 
             _sampleObject.gameObject.SetActive(false);
             _absorptionObject.gameObject.SetActive(false);
-            if (_ray.Type != RTRay.RayType.Volume)
-                return;
-
-            _sampleObject.transform.position = _ray.SamplePos;
-            _sampleObject.gameObject.SetActive(true);
-
-            if (!_ray.Absorbed)
+            
+            if (_ray.Sample != null)
             {
-                _absorptionObject.gameObject.SetActive(false);
-                return;
+                _sampleObject.transform.position = _ray.Sample.WorldPos;
+                _sampleObject.gameObject.SetActive(true);
             }
 
-            Vector3 end = _ray.Origin + _ray.Direction * _ray.Length;
-            _absorptionObject.transform.position = end;
-            _absorptionObject.gameObject.SetActive(true);
+            if (_ray.Absorption != null)
+            {
+                _absorptionObject.transform.position = _ray.Absorption.WorldPos;
+                _absorptionObject.gameObject.SetActive(true);
+            }
         }
 
         public void Draw(float radius, bool drawSamples)

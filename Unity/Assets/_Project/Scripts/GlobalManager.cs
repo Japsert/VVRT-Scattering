@@ -89,7 +89,7 @@ namespace _Project.Scripts
             instance = this;
             DontDestroyOnLoad(gameObject);
 
-#if true
+#if false
             int required = 0, optional = 0;
             foreach (Tasks tasks in TutorialTasks)
             {

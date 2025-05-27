@@ -4,6 +4,7 @@ using _Project.Ray_Tracer.Scripts.RT_Scene.RT_Camera;
 using _Project.Ray_Tracer.Scripts.RT_Scene.RT_Light;
 using _Project.Ray_Tracer.Scripts.RT_Scene.RT_Point_Light;
 using _Project.Ray_Tracer.Scripts.RT_Scene.RT_Spot_Light;
+using _Project.Ray_Tracer.Scripts.RT_Scene.Volumes;
 using UnityEngine;
 
 namespace _Project.Ray_Tracer.Scripts.RT_Scene
@@ -137,9 +138,12 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
         /// </summary>
         public List<RTMesh> Meshes { get; }
 
-        public RTScene(RTCamera camera) : this(camera, new List<RTPointLight>(), new List<RTSpotLight>(), new List<RTAreaLight>(), new List<RTMesh>()) { }
+        public List<RTVolume> Volumes { get; }
 
-        public RTScene(RTCamera camera, List<RTPointLight> pointlights, List<RTSpotLight> spotlights, List<RTAreaLight> arealights, List<RTMesh> meshes)
+        public RTScene(RTCamera camera) : this(camera, new List<RTPointLight>(), new List<RTSpotLight>(), new List<RTAreaLight>(), new List<RTMesh>(), new List<RTVolume>()) { }
+
+        public RTScene(RTCamera camera, List<RTPointLight> pointlights, List<RTSpotLight> spotlights,
+            List<RTAreaLight> arealights, List<RTMesh> meshes, List<RTVolume> volumes)
         {
             Camera = camera;
             
@@ -158,6 +162,8 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
             Meshes = meshes;
             foreach (var mesh in meshes)
                 mesh.OnMeshChanged.AddListener(SceneObjectChanged);
+
+            Volumes = volumes;
         }
 
         /// <summary>
@@ -219,6 +225,22 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
             Meshes.Remove(mesh);
             mesh.OnMeshChanged.RemoveListener(SceneObjectChanged);
             OnSceneChanged?.Invoke();
+        }
+
+        public void AddVolume(RTVolume volume)
+        {
+            Volumes.Add(volume);
+            Meshes.Add(volume);
+            volume.OnMeshChanged.AddListener(SceneObjectChanged);
+            OnSceneChanged?.Invoke();;
+        }
+
+        public void RemoveVolume(RTVolume volume)
+        {
+            Volumes.Remove(volume);
+            Meshes.Add(volume);
+            volume.OnMeshChanged.RemoveListener(SceneObjectChanged);
+            OnSceneChanged?.Invoke();;
         }
         
         /// <summary>

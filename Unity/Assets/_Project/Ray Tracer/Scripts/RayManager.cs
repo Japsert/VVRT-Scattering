@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using _Project.Ray_Tracer.Scripts.RT_Ray;
+using _Project.Ray_Tracer.Scripts.RT_Scene.Volumes;
 using _Project.Ray_Tracer.Scripts.Utility;
 using UnityEngine;
 
@@ -321,6 +322,7 @@ namespace _Project.Ray_Tracer.Scripts
         public Vector2Int selectedRayCoordinates;
         public bool hasSelectedRay = false;
 
+        private VolumeManager _volumeManager;
         protected RTSceneManager rtSceneManager;
         private UnityRayTracer rayTracer;
         
@@ -429,7 +431,7 @@ namespace _Project.Ray_Tracer.Scripts
                     return normalMaterial;
                 case RTRay.RayType.Shadow or RTRay.RayType.AreaShadow:
                     return shadowMaterial;
-                case RTRay.RayType.Light or RTRay.RayType.AreaLight:
+                case RTRay.RayType.Light or RTRay.RayType.AreaLight or RTRay.RayType.VolumeLight:
                     return lightMaterial;
                 case RTRay.RayType.Volume:
                     return volumeMaterial;
@@ -464,6 +466,7 @@ namespace _Project.Ray_Tracer.Scripts
                     return new Material(shadowMaterialTransparent);
                 case RTRay.RayType.Light:
                 case RTRay.RayType.AreaLight:
+                case RTRay.RayType.VolumeLight:
                     return new Material(lightMaterialTransparent);
                 case RTRay.RayType.Volume:
                     return new Material(volumeMaterialTransparent);
@@ -528,11 +531,13 @@ namespace _Project.Ray_Tracer.Scripts
             rayObjectPool = new RayObjectPool(rayPrefab, areaRayPrefab, initialRayPoolSize, transform);
             Reset = true;
 
+            _volumeManager = VolumeManager.Instance;
             rtSceneManager = RTSceneManager.Get();
             rayTracer = UnityRayTracer.Get();
 
-            rtSceneManager.Scene.OnSceneChanged += () => { UpdateRays(); };
-            rayTracer.OnRayTracerChanged += () => { UpdateRays(); };
+            _volumeManager.OnActiveVolumesLoaded += UpdateRays;
+            rtSceneManager.Scene.OnSceneChanged += UpdateRays;
+            rayTracer.OnRayTracerChanged += UpdateRays;
             UpdateRays();   // This is needed for level-changes.
         }
 
@@ -566,6 +571,8 @@ namespace _Project.Ray_Tracer.Scripts
         /// </summary>
         public virtual void UpdateRays()
         {
+            if (!VolumeManager.AreAllActiveVolumesLoaded())
+                return;
             rays = rayTracer.Render();
             rayObjectPool.MakeRayObjects(rays);
             rtSceneManager.UpdateImage(GetRayColors());
