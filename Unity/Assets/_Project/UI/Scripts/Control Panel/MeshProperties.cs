@@ -61,8 +61,8 @@ namespace _Project.UI.Scripts.Control_Panel
             specularEdit.Value = mesh.Specular;
             shininessEdit.Value = mesh.Shininess;
             
-            typeDropdown.value = typeDropdown.options.FindIndex(option => option.text == mesh.Type.ToString());
-            refractiveIndexEdit.gameObject.SetActive(mesh.Type == RTMesh.ObjectType.Transparent);
+            typeDropdown.value = typeDropdown.options.FindIndex(option => option.text == mesh.type.ToString());
+            refractiveIndexEdit.gameObject.SetActive(mesh.type == RTMesh.ObjectType.Transparent);
             refractiveIndexEdit.Value = mesh.RefractiveIndex;
         }
 
@@ -77,7 +77,7 @@ namespace _Project.UI.Scripts.Control_Panel
 
         private void ChangeObjectType(RTMesh.ObjectType type)
         {
-            if (type == mesh.Type) return;
+            if (type == mesh.type) return;
             refractiveIndexEdit.gameObject.SetActive(type == RTMesh.ObjectType.Transparent);
             mesh.ChangeObjectType(type);
             Show(mesh);

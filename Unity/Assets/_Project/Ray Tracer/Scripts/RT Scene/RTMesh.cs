@@ -258,7 +258,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
             transform.hasChanged = false;   // Do this in Update to let other scripts also check
         }
 
-        private void Awake()
+        protected void Awake()
         {
             if (StandardShader == null)
                 StandardShader = Shader.Find("Custom/RayTracerShader");

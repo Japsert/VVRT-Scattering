@@ -14,6 +14,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using _Project.Ray_Tracer.Scripts.RT_Scene.RT_Spot_Light;
+using _Project.Ray_Tracer.Scripts.RT_Scene.Volumes;
 using _Project.Scripts;
 
 namespace _Project.Ray_Tracer.Scripts
@@ -49,6 +50,8 @@ namespace _Project.Ray_Tracer.Scripts
         [SerializeField] private RTMesh barrelPrefab;
         [SerializeField] private RTMesh wineglassPrefab;
         [SerializeField] private RTMesh meshPrefab;
+        [SerializeField] private RTHeterogeneousVolume heterogeneousVolumePrefab;
+        [SerializeField] private RTHomogeneousVolume homogeneousVolumePrefab;
 
         [Header("UI")]
         [SerializeField] private Color SelectionColor;
@@ -97,7 +100,9 @@ namespace _Project.Ray_Tracer.Scripts
             Wineglass = 11500,
             PointLight = 12000,
             SpotLight = 13000,
-            AreaLight = 14000
+            AreaLight = 14000,
+            HeterogeneousVolume = 15000,
+            HomogeneousVolume = 15500,
         }
 
         /// <summary>
@@ -346,6 +351,7 @@ namespace _Project.Ray_Tracer.Scripts
         public void CreateObject(ObjectType type)
         {
             RTMesh mesh;
+            RTVolume volume;
             switch (type)
             {
                 case ObjectType.PointLight:
@@ -405,6 +411,16 @@ namespace _Project.Ray_Tracer.Scripts
                 case ObjectType.Wineglass:
                     mesh = Instantiate(wineglassPrefab);
                     break;
+                case ObjectType.HeterogeneousVolume:
+                    volume = Instantiate(heterogeneousVolumePrefab);
+                    Scene.AddVolume(volume);
+                    Select(volume.transform);
+                    return;
+                case ObjectType.HomogeneousVolume:
+                    volume = Instantiate(homogeneousVolumePrefab);
+                    Scene.AddVolume(volume);
+                    Select(volume.transform);
+                    return;
                 default:
                     return;
             }
@@ -564,9 +580,10 @@ namespace _Project.Ray_Tracer.Scripts
             List<RTSpotLight> spotLights = new List<RTSpotLight>(FindObjectsOfType<RTSpotLight>());
             List<RTAreaLight> areaLights = new List<RTAreaLight>(FindObjectsOfType<RTAreaLight>());
             List<RTMesh> meshes = new List<RTMesh>(FindObjectsOfType<RTMesh>());
+            List<RTVolume> volumes = new(FindObjectsOfType<RTVolume>());
 
             // Construct the ray tracer scene with the found objects.
-            Scene = new RTScene(camera, pointLights, spotLights, areaLights, meshes);
+            Scene = new RTScene(camera, pointLights, spotLights, areaLights, meshes, volumes);
         }
 
         private void Start()
@@ -635,7 +652,7 @@ namespace _Project.Ray_Tracer.Scripts
             }
             
             // Delete object key.
-            if (Input.GetKeyDown(KeyCode.Delete))
+            if (Input.GetKeyDown(KeyCode.Backspace) || Input.GetKeyDown(KeyCode.Delete))
                 DeleteSelected();
         }
     }

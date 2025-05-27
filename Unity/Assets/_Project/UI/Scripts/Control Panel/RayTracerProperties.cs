@@ -1,6 +1,7 @@
 using System.Collections;
 using _Project.Ray_Tracer.Scripts;
 using _Project.Scripts;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -19,63 +20,43 @@ namespace _Project.UI.Scripts.Control_Panel
         private UIManager uiManager;
         private RTSceneManager rtSceneManager;
 
-        [SerializeField]
-        private BoolEdit renderShadowsEdit;
-        [SerializeField]
-        private FloatEdit recursionDepthEdit;
-        [SerializeField]
-        private ColorEdit backgroundColorEdit;
+        [SerializeField] private BoolEdit renderShadowsEdit;
+        [SerializeField] private FloatEdit recursionDepthEdit;
+        [SerializeField] private ColorEdit backgroundColorEdit;
 
-        [SerializeField]
-        private BoolEdit showRaysEdit;
-        [SerializeField]
-        private BoolEdit hideNoHitRaysEdit;
-        [SerializeField]
-        private BoolEdit hideNegligibleRaysEdit;
-        [SerializeField]
-        private FloatEdit rayHideThresholdEdit;
-        [SerializeField]
-        private BoolEdit rayTransparencyEnabled;
-        [SerializeField]
-        private BoolEdit rayDynamicRadiusEnabled;
-        [SerializeField]
-        private BoolEdit rayColorContributionEnabled;
-        [SerializeField]
-        private FloatEdit rayTransThresholdEdit;
-        [SerializeField]
-        private FloatEdit rayTransExponentEdit;
-        [SerializeField]
-        private FloatEdit rayRadiusEdit;
-        [SerializeField]
-        private FloatEdit rayMinRadiusEdit;
-        [SerializeField]
-        private FloatEdit rayMaxRadiusEdit;
+        [SerializeField] private BoolEdit showRaysEdit;
+        [SerializeField] private BoolEdit hideNoHitRaysEdit;
+        [SerializeField] private BoolEdit hideNegligibleRaysEdit;
+        [SerializeField] private FloatEdit rayHideThresholdEdit;
+        [SerializeField] private BoolEdit rayTransparencyEnabled;
+        [SerializeField] private BoolEdit rayDynamicRadiusEnabled;
+        [SerializeField] private BoolEdit rayColorContributionEnabled;
+        [SerializeField] private FloatEdit rayTransThresholdEdit;
+        [SerializeField] private FloatEdit rayTransExponentEdit;
+        [SerializeField] private FloatEdit rayRadiusEdit;
+        [SerializeField] private FloatEdit rayMinRadiusEdit;
+        [SerializeField] private FloatEdit rayMaxRadiusEdit;
 
-        [SerializeField]
-        private BoolEdit animateEdit;
-        [SerializeField]
-        private BoolEdit animateSequentiallyEdit;
-        [SerializeField]
-        private BoolEdit loopEdit;
-        [SerializeField]
-        private FloatEdit speedEdit;
+        [SerializeField] private BoolEdit animateEdit;
+        [SerializeField] private BoolEdit animateSequentiallyEdit;
+        [SerializeField] private BoolEdit loopEdit;
+        [SerializeField] private FloatEdit speedEdit;
 
-        [SerializeField]
-        private FloatEdit superSamplingFactorEdit;
-        [SerializeField]
-        private BoolEdit superSamplingVisualEdit;
-        [SerializeField]
-        private BoolEdit enablePointLightsEdit;
-        [SerializeField]
-        private BoolEdit enableSpotLightsEdit;
-        [SerializeField]
-        private BoolEdit enableAreaLightsEdit;
-        [SerializeField]
-        private Button renderImageButton;
-        [SerializeField]
-        private Button openImageButton;
-        [SerializeField]
-        protected Button flyRoRTCameraButton;
+        [SerializeField] private FloatEdit superSamplingFactorEdit;
+        [SerializeField] private BoolEdit superSamplingVisualEdit;
+        [SerializeField] private BoolEdit enablePointLightsEdit;
+        [SerializeField] private BoolEdit enableSpotLightsEdit;
+        [SerializeField] private BoolEdit enableAreaLightsEdit;
+
+        [SerializeField] private DropdownEdit scatteringAlgorithmEdit;
+        [SerializeField] private FloatEdit stepSizeEdit;
+        [SerializeField] private IntEdit nrRandomWalksEdit;
+        [SerializeField] private IntEdit nrRandomWalksImageEdit;
+        [SerializeField] private DropdownEdit phaseFunctionEdit;
+
+        [SerializeField] private Button renderImageButton;
+        [SerializeField] private Button openImageButton;
+        [SerializeField] protected Button flyRoRTCameraButton;
 
 
         /// <summary>
@@ -116,6 +97,8 @@ namespace _Project.UI.Scripts.Control_Panel
 
             superSamplingFactorEdit.Value = rayTracer.SuperSamplingFactor;
             superSamplingVisualEdit.IsOn = rayTracer.SuperSamplingVisual;
+            
+            // scatteringAlgorithmEdit.
         }
 
         /// <summary>
@@ -152,13 +135,22 @@ namespace _Project.UI.Scripts.Control_Panel
         {
             renderShadowsEdit.OnValueChanged.AddListener((value) => { RTSceneManager.Get().SetShadows(value); });
         }
-        
+
         protected virtual void Awake()
         {
             renderShadowsEdit.OnValueChanged.AddListener((value) => { rayTracer.RenderShadows = value; });
-            enablePointLightsEdit.OnValueChanged.AddListener((value) => { rtSceneManager.Scene.EnablePointLights = value; });
-            enableSpotLightsEdit.OnValueChanged.AddListener((value) => { rtSceneManager.Scene.EnableSpotLights = value; });
-            enableAreaLightsEdit.OnValueChanged.AddListener((value) => { rtSceneManager.Scene.EnableAreaLights = value; });
+            enablePointLightsEdit.OnValueChanged.AddListener((value) =>
+            {
+                rtSceneManager.Scene.EnablePointLights = value;
+            });
+            enableSpotLightsEdit.OnValueChanged.AddListener((value) =>
+            {
+                rtSceneManager.Scene.EnableSpotLights = value;
+            });
+            enableAreaLightsEdit.OnValueChanged.AddListener((value) =>
+            {
+                rtSceneManager.Scene.EnableAreaLights = value;
+            });
             recursionDepthEdit.OnValueChanged.AddListener((value) => { rayTracer.MaxDepth = (int)value; });
             backgroundColorEdit.OnValueChanged.AddListener((value) => { rayTracer.BackgroundColor = value; });
 
@@ -166,9 +158,18 @@ namespace _Project.UI.Scripts.Control_Panel
             showRaysEdit.OnValueChanged.AddListener((value) => { rayManager.ShowRays = value; });
             hideNegligibleRaysEdit.OnValueChanged.AddListener((value) => { rayManager.HideNegligibleRays = value; });
             rayHideThresholdEdit.OnValueChanged.AddListener((value) => { rayManager.RayHideThreshold = value; });
-            rayTransparencyEnabled.OnValueChanged.AddListener((value) => { rayManager.RayTransparencyEnabled = value; });
-            rayDynamicRadiusEnabled.OnValueChanged.AddListener((value) => { rayManager.RayDynamicRadiusEnabled = value; });
-            rayColorContributionEnabled.OnValueChanged.AddListener((value) => { rayManager.RayColorContributionEnabled = value; });
+            rayTransparencyEnabled.OnValueChanged.AddListener((value) =>
+            {
+                rayManager.RayTransparencyEnabled = value;
+            });
+            rayDynamicRadiusEnabled.OnValueChanged.AddListener((value) =>
+            {
+                rayManager.RayDynamicRadiusEnabled = value;
+            });
+            rayColorContributionEnabled.OnValueChanged.AddListener((value) =>
+            {
+                rayManager.RayColorContributionEnabled = value;
+            });
             rayTransExponentEdit.OnValueChanged.AddListener((value) => { rayManager.RayTransExponent = value; });
             rayRadiusEdit.OnValueChanged.AddListener((value) => { rayManager.RayRadius = value; });
             rayMinRadiusEdit.OnValueChanged.AddListener((value) => { rayManager.RayMinRadius = value; });
@@ -179,12 +180,15 @@ namespace _Project.UI.Scripts.Control_Panel
             loopEdit.OnValueChanged.AddListener((value) => { rayManager.Loop = value; });
             speedEdit.OnValueChanged.AddListener((value) => { rayManager.Speed = value; });
 
-            superSamplingFactorEdit.OnValueChanged.AddListener((value) => { rayTracer.SuperSamplingFactor = (int)value; });
+            superSamplingFactorEdit.OnValueChanged.AddListener((value) =>
+            {
+                rayTracer.SuperSamplingFactor = (int)value;
+            });
             superSamplingVisualEdit.OnValueChanged.AddListener((value) => { rayTracer.SuperSamplingVisual = value; });
             renderImageButton.onClick.AddListener(RenderImage);
             openImageButton.onClick.AddListener(ToggleImage);
             flyRoRTCameraButton.onClick.AddListener(() =>
-            { 
+            {
                 showRaysEdit.IsOn = false; // This invokes the OnValueChanged event as well.
                 FindObjectOfType<CameraController>().FlyToRTCamera(); // There should only be 1 CamerController.
             });

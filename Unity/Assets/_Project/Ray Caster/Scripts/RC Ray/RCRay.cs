@@ -70,7 +70,7 @@ namespace _Project.Ray_Caster.Scripts.RC_Ray
         public double totalDensity = 0;
 
         /// <summary>
-        /// Used for the <see cref="RCRay.ColorLookupTable">
+        /// Used for the <see cref="RCRay.ColorLookupTable"/>
         /// </summary>
         public struct ColorTableEntry
         {
