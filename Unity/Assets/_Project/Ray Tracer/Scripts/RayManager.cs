@@ -63,7 +63,7 @@ namespace _Project.Ray_Tracer.Scripts
         }
 
         [SerializeField, Range(0.00f, 2.00f)]
-        public static float rayTransExponent = 1.00f;
+        private float rayTransExponent = 1.00f;
         /// <summary>
         /// The transparency threshold of the rays this ray manager draws.
         /// </summary>
@@ -571,7 +571,8 @@ namespace _Project.Ray_Tracer.Scripts
         /// </summary>
         public virtual void UpdateRays()
         {
-            if (!VolumeManager.AreAllActiveVolumesLoaded())
+            Debug.Log("updating rays");
+            if (!_volumeManager.AreAllActiveVolumesLoaded())
                 return;
             rays = rayTracer.Render();
             rayObjectPool.MakeRayObjects(rays);

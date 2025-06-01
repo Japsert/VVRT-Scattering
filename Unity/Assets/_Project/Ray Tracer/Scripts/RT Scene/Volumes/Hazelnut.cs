@@ -7,8 +7,10 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
     /// Oli is part of these.
     /// Do not confuse with oil.
     /// </remarks>
-    public class Hazelnut : RTHeterogeneousVolume, ILoadable
+    public class Hazelnut : RTHeterogeneousVolume
     {
+        public override VolumeManager.VolumeType VolumeType => VolumeManager.VolumeType.Bucky;
+        
         private const string Path = "/hnut256_uint.raw";
 
         private static float _maxDensity;

@@ -1,8 +1,7 @@
 using System;
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace _Project.UI.Scripts.Control_Panel
+namespace _Project.UI.Scripts.Control_Panel.Property_Editors
 {
     /// <summary>
     /// A UI class that allows for editing a floating point value via a slider and an input field. Presents a

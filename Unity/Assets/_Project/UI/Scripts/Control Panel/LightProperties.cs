@@ -9,6 +9,7 @@ using _Project.Ray_Tracer.Scripts.RT_Scene;
 using _Project.Ray_Tracer.Scripts.RT_Scene.RT_Spot_Light;
 using System;
 using System.Collections.Generic;
+using _Project.UI.Scripts.Control_Panel.Property_Editors;
 using UnityEngine.UI;
 
 namespace _Project.UI.Scripts.Control_Panel

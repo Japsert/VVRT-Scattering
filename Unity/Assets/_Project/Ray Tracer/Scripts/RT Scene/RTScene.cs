@@ -38,6 +38,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
                     camera.OnCameraChanged -= SceneObjectChanged;
 
                 camera = value;
+                // camera.OnCameraChanged += SceneObjectChanged;
                 camera.OnCameraChanged += SceneObjectChanged;
                 OnSceneChanged?.Invoke();
             }

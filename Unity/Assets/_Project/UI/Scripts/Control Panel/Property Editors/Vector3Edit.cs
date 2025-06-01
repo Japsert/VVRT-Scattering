@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace _Project.UI.Scripts.Control_Panel
+namespace _Project.UI.Scripts.Control_Panel.Property_Editors
 {
     /// <summary>
     /// A UI class that allows for editing a vector 3 value via three input fields. Presents a <see cref="OnValueChanged"/>

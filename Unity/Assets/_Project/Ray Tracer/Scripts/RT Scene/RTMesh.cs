@@ -185,7 +185,6 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
             Opaque,
             Transparent,
             Mirror,
-            Volume
         }
 
         /// <summary>

@@ -3,8 +3,10 @@ using UnityEngine;
 
 namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
 {
-    public class Bunny : RTHeterogeneousVolume, ILoadable
+    public class Bunny : RTHeterogeneousVolume
     {
+        public override VolumeManager.VolumeType VolumeType => VolumeManager.VolumeType.Bucky;
+        
         private const string Path = "/bunny512x512x361.raw";
 
         private static float _maxDensity;
