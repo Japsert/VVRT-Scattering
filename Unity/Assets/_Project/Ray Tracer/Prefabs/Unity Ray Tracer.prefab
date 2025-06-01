@@ -50,6 +50,12 @@ MonoBehaviour:
   superSamplingFactor: 1
   superSamplingVisual: 0
   backgroundColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  rayMarchAlgorithm: 0
+  stepSizeSS: 0.5
+  nrRandomWalksMSScene: 3
+  nrRandomWalksMSRender: 100
+  phaseFunctionMS: 1
+  maxAngleDeg: 10
   acceleratedObject: {fileID: 0}
   accelerationStatus: {fileID: 0}
   raysIgnored: {fileID: 0}

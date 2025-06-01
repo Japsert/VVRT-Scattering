@@ -36,8 +36,9 @@ namespace _Project.Ray_Tracer.Scripts
         /// </summary>
         public RTImage Image { get; private set; }
 
-        [Header("Scene Objects")]
-        [SerializeField] private RTCamera cameraPrefab;
+        [Header("Scene Objects")] [SerializeField]
+        private RTCamera cameraPrefab;
+
         [SerializeField] private RTPointLight pointLightPrefab;
         [SerializeField] private RTSpotLight spotLightPrefab;
         [SerializeField] private RTAreaLight areaLightPrefab;
@@ -53,37 +54,55 @@ namespace _Project.Ray_Tracer.Scripts
         [SerializeField] private RTHeterogeneousVolume heterogeneousVolumePrefab;
         [SerializeField] private RTHomogeneousVolume homogeneousVolumePrefab;
 
-        [Header("UI")]
-        [SerializeField] private Color SelectionColor;
+        [Header("UI")] [SerializeField] private Color SelectionColor;
         [SerializeField] private ControlPanel ControlPanel;
         [SerializeField] private TMP_Dropdown HandleTypeDropdown;
         [SerializeField] private TMP_Dropdown HandleSpaceDropdown;
 
-        [Header("Gizmos")]
-        [SerializeField] private RuntimeTransformHandle transformHandle;
-        
+        [Header("Gizmos")] [SerializeField] private RuntimeTransformHandle transformHandle;
+
         [SerializeField] private float translationSnap = 0.0f;
         [SerializeField] private float rotationSnap = 0.0f;
         [SerializeField] private float scaleSnap = 0.0f;
 
-        [Header("Objects")]
-        [SerializeField] private bool deleteAllowed = false;
+        [Header("Objects")] [SerializeField] private bool deleteAllowed = false;
         [SerializeField, Range(0, 12)] private int pointSpotLightLimit = 12;
-        [SerializeField, Range(0,  5)] private int areaLightLimit = 5;
-        public bool DeleteAllowed { get => deleteAllowed; }
-        public int PointSpotLightLimit { get => pointSpotLightLimit; }
-        public int AreaLightLimit { get => areaLightLimit; }
+        [SerializeField, Range(0, 5)] private int areaLightLimit = 5;
+
+        public bool DeleteAllowed
+        {
+            get => deleteAllowed;
+        }
+
+        public int PointSpotLightLimit
+        {
+            get => pointSpotLightLimit;
+        }
+
+        public int AreaLightLimit
+        {
+            get => areaLightLimit;
+        }
 
         [Serializable]
-        public class Event : UnityEvent { };
-        public Event OnTranslationMode, OnRotationMode, OnScaleMode, OnLocalSpace, OnGlobalSpace, OnDeselect, OnObjectDeleted;
+        public class Event : UnityEvent
+        {
+        };
+
+        public Event OnTranslationMode,
+            OnRotationMode,
+            OnScaleMode,
+            OnLocalSpace,
+            OnGlobalSpace,
+            OnDeselect,
+            OnObjectDeleted;
 
         private static RTSceneManager instance = null;
         private Selection selection = new Selection();
         private Transform previousTransform;
 
         private HandleSpace handleSpace = HandleSpace.WORLD;
-        
+
         /// <summary>
         /// The object type. 
         /// The value represents the amount of points to unlock the object in sandbox mode.
@@ -172,10 +191,32 @@ namespace _Project.Ray_Tracer.Scripts
             }
 
             /// <summary>
+            /// The <see cref="RTVolume"/> component attached to the selected object. Will be <c>null</c> if there is
+            /// none.
+            /// </summary>
+            public RTVolume Volume
+            {
+                get
+                {
+                    if (Type.IsSubclassOf(typeof(RTVolume))) return (RTVolume)selected;
+                    return null;
+                }
+                set
+                {
+                    if (value == null) return;
+                    selected = value;
+
+                    Type = value.GetType();
+                    Transform = value.transform;
+                    Empty = false;
+                }
+            }
+
+            /// <summary>
             /// The <see cref="RTMesh"/> component attached to the selected object. Will be <c>null</c> if there is
             /// none.
             /// </summary>
-            public RTMesh Mesh 
+            public RTMesh Mesh
             {
                 get
                 {
@@ -192,7 +233,7 @@ namespace _Project.Ray_Tracer.Scripts
                     Empty = false;
                 }
             }
-            
+
             /// <summary>
             /// A selection is empty if an object is selected that has no <see cref="RTCamera"/>, <see cref="RTLight"/>
             /// or <see cref="RTMesh"/> component attached. <see cref="Transform"/> does not have to be <c>null</c> for
@@ -228,10 +269,10 @@ namespace _Project.Ray_Tracer.Scripts
         /// <param name="newSelection"> The new selected object. </param>
         public void Select(Transform newSelection)
         {
-
             // Do nothing if what we selected is already the selected object.
             if (selection.Transform == newSelection)
             {
+                selection.Volume?.OnMeshSelected.Invoke();
                 selection.Mesh?.OnMeshSelected?.Invoke();
                 selection.Camera?.OnCameraSelected?.Invoke();
                 selection.Light?.OnLightSelected?.Invoke();
@@ -261,6 +302,17 @@ namespace _Project.Ray_Tracer.Scripts
                 previousTransform = newSelection;
                 selection.Light.OnLightSelected?.Invoke();
             }
+            else if (selection.Type.IsSubclassOf(typeof(RTVolume))) // before its base class RTMesh
+            {
+                if (selection.Type.IsSubclassOf(typeof(RTHeterogeneousVolume)))
+                    ControlPanel.ShowHeterogeneousVolumeProperties((RTHeterogeneousVolume)selection.Volume);
+                else
+                    ControlPanel.ShowHomogeneousVolumeProperties((RTHomogeneousVolume)selection.Volume);
+                selection.Volume.Outline.OutlineColor = SelectionColor;
+                selection.Volume.Outline.enabled = true;
+                previousTransform = newSelection;
+                selection.Volume.OnMeshSelected?.Invoke();
+            }
             else if (selection.Type == typeof(RTMesh))
             {
                 ControlPanel.ShowMeshProperties(selection.Mesh);
@@ -275,19 +327,19 @@ namespace _Project.Ray_Tracer.Scripts
             transformHandle.gameObject.SetActive(true);
             UIManager.Get().AddEscapable(DeselectAndInvoke);
         }
-        
+
         public bool HasSelection()
         {
             return !selection.Empty;
         }
-        
+
         /// <summary>
         /// Deselect the currently selected object. Nothing is done if no object is selected.
         /// </summary>
         public void Deselect()
         {
             ControlPanel.ShowRayTracerProperties();
-            
+
             if (selection.Empty)
                 return;
 
@@ -296,6 +348,8 @@ namespace _Project.Ray_Tracer.Scripts
                 selection.Camera.ResetColor();
             else if (selection.Type.BaseType == typeof(RTLight))
                 selection.Light.ResetHighlight();
+            else if (selection.Type == typeof(RTVolume))
+                selection.Volume.Outline.enabled = false;
             else if (selection.Type == typeof(RTMesh))
                 selection.Mesh.Outline.enabled = false;
 
@@ -330,14 +384,14 @@ namespace _Project.Ray_Tracer.Scripts
                 Scene.RemoveLight(selection.Light);
             else if (selection.Type == typeof(RTMesh))
                 Scene.RemoveMesh(selection.Mesh);
-            
+
             // Create a local reference
             GameObject gameObject = selection.Transform.gameObject;
-            
+
             // Remove all connections
             previousTransform = null;
             Deselect();
-            
+
             // Destroy
 #if UNITY_EDITOR
             DestroyImmediate(gameObject);
@@ -360,6 +414,7 @@ namespace _Project.Ray_Tracer.Scripts
                         Debug.LogError("PointSpotLightLimit reached!");
                         return;
                     }
+
                     RTPointLight pointLight = Instantiate(pointLightPrefab);
                     pointLight.UpdateLightData();
                     Scene.AddLight(pointLight);
@@ -371,6 +426,7 @@ namespace _Project.Ray_Tracer.Scripts
                         Debug.LogError("PointSpotLightLimit reached!");
                         return;
                     }
+
                     RTSpotLight spotLight = Instantiate(spotLightPrefab);
                     spotLight.UpdateLightData();
                     Scene.AddLight(spotLight);
@@ -382,6 +438,7 @@ namespace _Project.Ray_Tracer.Scripts
                         Debug.LogError("AreaLightLimit reached!");
                         return;
                     }
+
                     RTAreaLight areaLight = Instantiate(areaLightPrefab);
                     areaLight.UpdateLightData();
                     Scene.AddLight(areaLight);
@@ -400,7 +457,7 @@ namespace _Project.Ray_Tracer.Scripts
                     mesh = Instantiate(capsulePrefab);
                     break;
                 case ObjectType.Goat:
-                     mesh = Instantiate(goatPrefab);
+                    mesh = Instantiate(goatPrefab);
                     break;
                 case ObjectType.Prism:
                     mesh = Instantiate(prismPrefab);
@@ -424,6 +481,7 @@ namespace _Project.Ray_Tracer.Scripts
                 default:
                     return;
             }
+
             Scene.AddMesh(mesh);
             Select(mesh.transform);
         }
@@ -453,11 +511,11 @@ namespace _Project.Ray_Tracer.Scripts
                 return result;
 
             result.Transform = selection;
-            
+
             // Try to get camera, light and mesh components from the selected object.
             result.Camera = selection.GetComponent<RTCamera>();
             if (!result.Empty) return result;
-           
+
             result.Light = selection.GetComponent<RTPointLight>();
             if (!result.Empty) return result;
 
@@ -467,12 +525,15 @@ namespace _Project.Ray_Tracer.Scripts
             result.Light = selection.GetComponent<RTAreaLight>();
             if (!result.Empty) return result;
 
+            result.Volume = selection.GetComponent<RTVolume>();
+            if (!result.Empty) return result;
+
             result.Mesh = selection.GetComponent<RTMesh>();
             if (!result.Empty) return result;
-            
+
             return result;
         }
-        
+
         private void SetHandleType(HandleType type)
         {
             // Cameras should not be scaled and lights should not be scaled or rotated. We default to translation.
@@ -508,7 +569,7 @@ namespace _Project.Ray_Tracer.Scripts
                 (selectedAreaLight && type == HandleType.SCALE))
                 transformHandle.axes = HandleAxes.XY;
             else
-                transformHandle.axes = HandleAxes.XYZ;   // reset in case it's set to XY
+                transformHandle.axes = HandleAxes.XYZ; // reset in case it's set to XY
 
             transformHandle.type = type;
         }
@@ -520,7 +581,7 @@ namespace _Project.Ray_Tracer.Scripts
 
             if (space == HandleSpace.LOCAL)
                 OnLocalSpace?.Invoke();
-            else 
+            else
                 OnGlobalSpace?.Invoke();
 
             if (HandleSpaceDropdown.value != (int)space)
@@ -547,6 +608,7 @@ namespace _Project.Ray_Tracer.Scripts
                         ControlPanel.ShowEmptyProperties();
                         GlobalManager.EasterEggFound = 1;
                     }
+
                     break;
             }
         }
@@ -554,7 +616,7 @@ namespace _Project.Ray_Tracer.Scripts
         public void SetShadows(bool value)
         {
             LightShadows shadowType = value ? LightShadows.Hard : LightShadows.None;
-            foreach (var sceneLight in Scene.PointLights) 
+            foreach (var sceneLight in Scene.PointLights)
                 sceneLight.Shadows = shadowType;
             foreach (var sceneLight in Scene.SpotLights)
                 sceneLight.Shadows = shadowType;
@@ -591,18 +653,17 @@ namespace _Project.Ray_Tracer.Scripts
             ControlPanel.Subscribe(OnEvent);
         }
 
-        
+
         // Check whether we are clicking on a transformation handle.
         private void OnLeftClick()
         {
-            
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
             // If we hit a handle we do nothing
             if (Physics.Raycast(ray, Mathf.Infinity, LayerMask.GetMask("Gizmos"))) return;
 
             // If we don't hit a handle we try to select the first object we did hit.
-            int mask = LayerMask.GetMask("Ray Tracer Objects", "Camera and Lights");
+            int mask = LayerMask.GetMask("Ray Tracer Objects", "Camera and Lights", "Volumes");
             if (Physics.Raycast(ray, out var hit, Mathf.Infinity, mask))
             {
                 Select(hit.transform);
@@ -612,14 +673,14 @@ namespace _Project.Ray_Tracer.Scripts
             // If nothing was hit deselect all.
             DeselectAndInvoke();
         }
-        
+
         private void Update()
         {
             // Check if we clicked on anything (unless we are hovered over or in UI, or orbiting the camera).
             bool inUI = EventSystem.current.IsPointerOverGameObject();
             if (Input.GetMouseButtonDown(0) && !inUI)
                 OnLeftClick();
-            
+
             // Handle transformation type hot keys.
             if (Input.GetKeyDown(KeyCode.T))
                 SetHandleType(HandleType.POSITION);
@@ -644,13 +705,14 @@ namespace _Project.Ray_Tracer.Scripts
                 transformHandle.rotationSnap = rotationSnap;
                 transformHandle.scaleSnap = new Vector3(scaleSnap, scaleSnap, scaleSnap);
             }
+
             if (Input.GetKeyUp(KeyCode.LeftShift))
             {
                 transformHandle.positionSnap = new Vector3(0.0f, 0.0f, 0.0f);
                 transformHandle.rotationSnap = 0.0f;
                 transformHandle.scaleSnap = new Vector3(0.0f, 0.0f, 0.0f);
             }
-            
+
             // Delete object key.
             if (Input.GetKeyDown(KeyCode.Backspace) || Input.GetKeyDown(KeyCode.Delete))
                 DeleteSelected();

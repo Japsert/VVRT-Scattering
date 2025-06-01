@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using _Project.Ray_Tracer.Scripts.RT_Ray;
-using _Project.Ray_Tracer.Scripts.RT_Ray.Events.Volume_Sample;
 using _Project.Ray_Tracer.Scripts.RT_Scene;
 using _Project.Ray_Tracer.Scripts.RT_Scene.RT_Camera;
 using _Project.Ray_Tracer.Scripts.RT_Scene.RT_Light;
@@ -115,24 +114,87 @@ namespace _Project.Ray_Tracer.Scripts
             }
         }
 
-        [SerializeField] private RayMarchAlgorithm rayMarchAlgorithm = RayMarchAlgorithm.MultipleScattering;
-        [SerializeField] private float stepSizeSS = 0.5f;
-        [SerializeField, Range(1, 5)] private int nrRandomWalksMS = 3;
-        [SerializeField, Range(1, 1000)] private int nrRandomWalksMSImage = 100;
-        [SerializeField] private PhaseFunctionMS phaseFunctionMS = PhaseFunctionMS.HenyeyGreenstein;
-        [SerializeField, Range(0, 180)] private int maxAngleDeg = 10;
-
-        private enum RayMarchAlgorithm
+        public enum RayMarchAlgorithmType
         {
+            NoScattering,
             SingleScattering,
             MultipleScattering
         }
 
-        private enum PhaseFunctionMS
+        [Header("Volume Marching")] [SerializeField]
+        private RayMarchAlgorithmType rayMarchAlgorithm = RayMarchAlgorithmType.NoScattering;
+
+        public RayMarchAlgorithmType RayMarchAlgorithm
+        {
+            get
+            {
+                Debug.Log($"RayMarchAlg.get: {rayMarchAlgorithm}");
+                return rayMarchAlgorithm;
+            }
+            set
+            {
+                if (value == rayMarchAlgorithm) return;
+                rayMarchAlgorithm = value;
+                OnRayTracerChanged?.Invoke();
+            }
+        }
+
+        [SerializeField] private float stepSizeSS = 0.5f;
+
+        public float StepSizeSS
+        {
+            get => stepSizeSS;
+            set
+            {
+                if (value == stepSizeSS) return;
+                stepSizeSS = value;
+                OnRayTracerChanged?.Invoke();
+            }
+        }
+
+        [SerializeField, Range(1, 5)] private int nrRandomWalksMSScene = 3;
+
+        public int NrRandomWalksMSScene
+        {
+            get => nrRandomWalksMSScene;
+            set
+            {
+                if (value == nrRandomWalksMSScene) return;
+                nrRandomWalksMSScene = value;
+                OnRayTracerChanged?.Invoke();
+            }
+        }
+
+        [SerializeField, Range(1, 1000)] private int nrRandomWalksMSRender = 100;
+
+        public int NrRandomWalksMSRender
+        {
+            get => nrRandomWalksMSRender;
+            set
+            {
+                if (value == nrRandomWalksMSRender) return;
+                nrRandomWalksMSRender = value;
+                OnRayTracerChanged?.Invoke();
+            }
+        }
+
+        public enum PhaseFunctionMSType
         {
             Isotropic,
-            MaxAngleDeg,
             HenyeyGreenstein
+        }
+
+        [SerializeField] private PhaseFunctionMSType phaseFunctionMS = PhaseFunctionMSType.HenyeyGreenstein;
+
+        public PhaseFunctionMSType PhaseFunctionMS
+        {
+            get => phaseFunctionMS;
+            set
+            {
+                if (value == phaseFunctionMS) return;
+                phaseFunctionMS = value;
+                OnRayTracerChanged?.Invoke();
+            }
         }
 
         private static UnityRayTracer _instance;
@@ -144,6 +206,7 @@ namespace _Project.Ray_Tracer.Scripts
         protected RTCamera Camera;
 
         protected int RayTracerLayer;
+        private int _rayTracerVolumeLayer;
 
         /// <summary>
         /// A class that stores the raw mesh data of a collider. This is used to cache a list of recently intersected
@@ -534,10 +597,10 @@ namespace _Project.Ray_Tracer.Scripts
         {
             Color accumulatedColor = Color.black;
 
-            for (int walk = 0; walk < nrRandomWalksMS; walk++)
+            for (int walk = 0; walk < nrRandomWalksMSScene; walk++)
                 accumulatedColor += MSSingleRandomWalk(entryRayNode, volume, hit.point, inDirection, depth);
 
-            accumulatedColor /= nrRandomWalksMS;
+            accumulatedColor /= nrRandomWalksMSScene;
             accumulatedColor.a = 1f;
             entryRayNode.Data.Color = accumulatedColor;
 
@@ -608,9 +671,8 @@ namespace _Project.Ray_Tracer.Scripts
                 // update direction
                 currentDirection = phaseFunctionMS switch
                 {
-                    PhaseFunctionMS.Isotropic => UpdateDirectionRandom(),
-                    PhaseFunctionMS.MaxAngleDeg => UpdateDirectionMaxAngle(currentDirection, maxAngleDeg),
-                    PhaseFunctionMS.HenyeyGreenstein => UpdateDirectionHG(currentDirection, volume.G),
+                    PhaseFunctionMSType.Isotropic => UpdateDirectionRandom(),
+                    PhaseFunctionMSType.HenyeyGreenstein => UpdateDirectionHG(currentDirection, volume.G),
                     _ => throw new ArgumentOutOfRangeException(nameof(phaseFunctionMS), phaseFunctionMS,
                         "invalid enum value")
                 };
@@ -633,8 +695,9 @@ namespace _Project.Ray_Tracer.Scripts
         /// <returns></returns>
         private TreeNode<RTRay> Trace(Vector3 origin, Vector3 direction, int depth, RTRay.RayType type)
         {
+            int mask = rayMarchAlgorithm == RayMarchAlgorithmType.NoScattering ? RayTracerLayer : _rayTracerVolumeLayer;
             // If we did not hit anything we return a no hit ray whose result color is the backgroundcolor.
-            if (!Physics.Raycast(origin, direction, out RaycastHit hit, Mathf.Infinity, RayTracerLayer))
+            if (!Physics.Raycast(origin, direction, out RaycastHit hit, Mathf.Infinity, mask))
                 return new TreeNode<RTRay>(new RTRay(origin, direction, Mathf.Infinity, BackgroundColor,
                     RTRay.RayType.NoHit));
 
@@ -647,10 +710,15 @@ namespace _Project.Ray_Tracer.Scripts
             {
                 switch (rayMarchAlgorithm)
                 {
-                    case RayMarchAlgorithm.SingleScattering: // TODO: add ambient component?
+                    case RayMarchAlgorithmType.NoScattering:
+                        break;
+                    case RayMarchAlgorithmType.SingleScattering: // TODO: add ambient component?
                         return VolumeRayMarch_SingleScattering(rayTree, volume, hit, direction, depth);
-                    case RayMarchAlgorithm.MultipleScattering:
+                    case RayMarchAlgorithmType.MultipleScattering:
                         return VolumeRayMarch_MultipleScattering(rayTree, volume, hit, direction, depth);
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(rayMarchAlgorithm), rayMarchAlgorithm,
+                            "invalid enum value");
                 }
             }
 
@@ -934,10 +1002,10 @@ namespace _Project.Ray_Tracer.Scripts
         {
             Color accumulatedColor = Color.black;
 
-            for (int walk = 0; walk < nrRandomWalksMSImage; walk++)
+            for (int walk = 0; walk < nrRandomWalksMSRender; walk++)
                 accumulatedColor += MSSingleRandomWalk_Image(volume, hit.point, inDirection, depth);
 
-            accumulatedColor /= nrRandomWalksMS;
+            accumulatedColor /= nrRandomWalksMSScene;
             accumulatedColor.a = 1f;
 
             return accumulatedColor;
@@ -981,9 +1049,8 @@ namespace _Project.Ray_Tracer.Scripts
                 // update direction
                 currentDirection = phaseFunctionMS switch
                 {
-                    PhaseFunctionMS.Isotropic => UpdateDirectionRandom(),
-                    PhaseFunctionMS.MaxAngleDeg => UpdateDirectionMaxAngle(currentDirection, maxAngleDeg),
-                    PhaseFunctionMS.HenyeyGreenstein => UpdateDirectionHG(currentDirection, volume.G),
+                    PhaseFunctionMSType.Isotropic => UpdateDirectionRandom(),
+                    PhaseFunctionMSType.HenyeyGreenstein => UpdateDirectionHG(currentDirection, volume.G),
                     _ => throw new ArgumentOutOfRangeException(nameof(phaseFunctionMS), phaseFunctionMS,
                         "invalid enum value")
                 };
@@ -997,8 +1064,9 @@ namespace _Project.Ray_Tracer.Scripts
 
         protected virtual Color TraceImage(Vector3 origin, Vector3 direction, int depth)
         {
+            int mask = rayMarchAlgorithm == RayMarchAlgorithmType.NoScattering ? RayTracerLayer : _rayTracerVolumeLayer;
             // If we did not hit anything we return the background color.
-            if (!Physics.Raycast(origin, direction, out RaycastHit hit, Mathf.Infinity, RayTracerLayer))
+            if (!Physics.Raycast(origin, direction, out RaycastHit hit, Mathf.Infinity, mask))
                 return BackgroundColor;
 
             RTMesh mesh = hit.transform.GetComponent<RTMesh>();
@@ -1008,10 +1076,15 @@ namespace _Project.Ray_Tracer.Scripts
             {
                 switch (rayMarchAlgorithm)
                 {
-                    case RayMarchAlgorithm.SingleScattering: // TODO: add ambient component?
+                    case RayMarchAlgorithmType.NoScattering:
+                        break;
+                    case RayMarchAlgorithmType.SingleScattering: // TODO: add ambient component?
                         return VolumeRayMarch_SingleScattering_Image(volume, hit, direction, depth);
-                    case RayMarchAlgorithm.MultipleScattering:
+                    case RayMarchAlgorithmType.MultipleScattering:
                         return VolumeRayMarch_MultipleScattering_Image(volume, hit, direction, depth);
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(rayMarchAlgorithm), rayMarchAlgorithm,
+                            "invalid enum value");
                 }
             }
 
@@ -1135,6 +1208,7 @@ namespace _Project.Ray_Tracer.Scripts
         {
             _instance = this;
             RayTracerLayer = LayerMask.GetMask("Ray Tracer Objects");
+            _rayTracerVolumeLayer = LayerMask.GetMask("Ray Tracer Objects", "Volumes");
             AccelerationAwake();
         }
 

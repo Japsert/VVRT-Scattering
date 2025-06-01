@@ -3,8 +3,10 @@ using UnityEngine;
 
 namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
 {
-    public class Bucky : RTHeterogeneousVolume, ILoadable
+    public class Bucky : RTHeterogeneousVolume
     {
+        public override VolumeManager.VolumeType VolumeType => VolumeManager.VolumeType.Bucky;
+
         private const string Path = "/bucky32x32x32.raw";
 
         private static float _maxDensity;
@@ -25,7 +27,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
             _maxDensity = maxDensity;
             _isLoaded = true;
         }
-        
+
         public override ColorTableEntry[] ColorLookupTable { get; } =
         {
             new(0f, Color.clear),

@@ -1,12 +1,12 @@
+using System;
 using _Project.UI.Scripts.Tooltips;
 using HSVPicker;
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace _Project.UI.Scripts.Control_Panel
+namespace _Project.UI.Scripts.Control_Panel.Property_Editors
 {
     /// <summary>
     /// A UI class that allows for editing a color value via a color picker UI. Presents a <see cref="OnValueChanged"/>

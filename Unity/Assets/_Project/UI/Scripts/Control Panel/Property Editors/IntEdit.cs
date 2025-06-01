@@ -5,83 +5,78 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace _Project.UI.Scripts.Control_Panel
+namespace _Project.UI.Scripts.Control_Panel.Property_Editors
 {
     /// <summary>
-    /// A UI class that allows for editing a floating point value via a slider and an input field. Presents a
+    /// A UI class that allows for editing an integer value via a slider and an input field. Presents a
     /// <see cref="OnValueChanged"/> event that is invoked whenever the value is changed. This change can come from the
     /// slider, input field or a direct assignment to the <see cref="Value"/> field.
     /// </summary>
     public class IntEdit : MonoBehaviour
     {
-        [Serializable]
-        public class ValueChanged : UnityEvent<float> { };
-        public ValueChanged OnValueChanged;
+        public UnityEvent<int> OnValueChanged;
 
-        [SerializeField]
-        private TextMeshProUGUI title;
-        [SerializeField]
-        private Slider slider;
-        [SerializeField]
-        private InputField input;
-        [SerializeField]
-        private string tooltip;
+        [SerializeField] private TextMeshProUGUI title;
+        [SerializeField] private Slider slider;
+        [SerializeField] private InputField input;
+        [SerializeField] private string tooltip;
 
         /// <summary>
-        /// The displayed title of this <see cref="FloatEdit"/>.
+        /// The displayed title of this <see cref="IntEdit"/>.
         /// </summary>
         public string Title
         {
-            get { return title.text; }
-            set { title.text = value; }
+            get => title.text;
+            set => title.text = value;
         }
 
-        private float value;
+        private int _value;
+
         /// <summary>
-        /// The value of this <see cref="FloatEdit"/>. When set, the slider and input field UI elements will be updated.
+        /// The value of this <see cref="IntEdit"/>. When set, the slider and input field UI elements will be updated.
         /// <see cref="OnValueChanged"/> will be invoked when it is set.
         /// </summary>
-        public float Value
+        public int Value
         {
-            get { return value; }
+            get => _value;
             set
             {
-                if (this.value == value) return;
+                if (_value == value) return;
 
                 // Set the value.
-                this.value = CorrectValue(value);
+                _value = CorrectValue(value);
 
                 // Only change the slider if it is not up-to-date.
-                if (slider.value != this.value)
-                    slider.value = this.value;
+                if ((int)slider.value != _value)
+                    slider.value = _value;
 
                 // Try to change the input field if it is not up-to-date.
                 try
                 {
-                    if (CorrectValue(float.Parse(input.text)) != this.value)
-                        input.text = this.value.ToString();
+                    if (CorrectValue(int.Parse(input.text)) != _value)
+                        input.text = _value.ToString();
                 }
                 // An improperly formated input field is interpreted as a 0. Update it if the value is not actually 0.
                 catch (FormatException)
                 {
-                    if (this.value != CorrectValue(0.0f))
-                        input.text = this.value.ToString();
+                    if (_value != CorrectValue(0))
+                        input.text = _value.ToString();
                 }
 
                 // Notify listeners of the change.
-                OnValueChanged?.Invoke(this.value);
+                OnValueChanged?.Invoke(_value);
             }
         }
 
-        [SerializeField]
-        private float minValue;
+        [SerializeField] private int minValue;
+
         /// <summary>
-        /// The minimum value this <see cref="FloatEdit"/> can take on. When set, <see cref="Value"/> will be recalculated
+        /// The minimum value this <see cref="IntEdit"/> can take on. When set, <see cref="Value"/> will be recalculated
         /// and if it is below the new minimum it will be clamped.
         /// </summary>
-        public float MinValue 
-        { 
-            get { return minValue; } 
+        public int MinValue
+        {
+            get => minValue;
             set
             {
                 minValue = value;
@@ -90,15 +85,15 @@ namespace _Project.UI.Scripts.Control_Panel
             }
         }
 
-        [SerializeField]
-        private float maxValue;
+        [SerializeField] private int maxValue;
+
         /// <summary>
-        /// The maximum value this <see cref="FloatEdit"/> can take on. When set, <see cref="Value"/> will be recalculated
+        /// The maximum value this <see cref="IntEdit"/> can take on. When set, <see cref="Value"/> will be recalculated
         /// and if it is above the new maximum it will be clamped.
         /// </summary>
-        public float MaxValue
+        public int MaxValue
         {
-            get { return maxValue; }
+            get => maxValue;
             set
             {
                 maxValue = value;
@@ -107,30 +102,14 @@ namespace _Project.UI.Scripts.Control_Panel
             }
         }
 
-        [SerializeField]
-        private int digits;
-        /// <summary>
-        /// The number of digits this <see cref="FloatEdit"/>'s value will be rounded to. When set, <see cref="Value"/>
-        /// will be recalculated and rounded to the new number of digits.
-        /// </summary>
-        public int Digits
-        { 
-            get { return digits; } 
-            set
-            {
-                digits = value;
-                Value = (float)Math.Round(Value, digits); // Round the value to the new number of digits.
-            }
-        }
+        [SerializeField] private bool interactable;
 
-        [SerializeField]
-        private bool interactable;
         /// <summary>
-        /// Whether this <see cref="FloatEdit"/>'s UI is interactable.
+        /// Whether this <see cref="IntEdit"/>'s UI is interactable.
         /// </summary>
         public bool Interactable
         {
-            get { return interactable; }
+            get => interactable;
             set
             {
                 interactable = value;
@@ -153,50 +132,39 @@ namespace _Project.UI.Scripts.Control_Panel
         }
 
         /// <summary>
-        /// Whether this <see cref="FloatEdit"/>'s UI is not interactable.
+        /// Correct <paramref name="value"/> to fit within the restrictions of this <see cref="IntEdit"/>. This involves
+        /// clamping it between <see cref="MinValue"/> and <see cref="MaxValue"/>.
         /// </summary>
-        public bool InverseInteractable
+        /// <param name="value"> The integer value to correct. </param>
+        /// <returns> <paramref name="value"/> clamped. </returns>
+        private int CorrectValue(int value)
         {
-            get { return !interactable; }
-            set { Interactable = !value; }
+            return Mathf.Clamp(value, MinValue, MaxValue);
         }
 
-        /// <summary>
-        /// Correct <paramref name="value"/> to fit within the restrictions of this <see cref="FloatEdit"/>. This involves
-        /// rounding <paramref name="value"/> to the number of digits specified by <see cref="Digits"/> and clamping it
-        /// between <see cref="MinValue"/> and <see cref="MaxValue"/>.
-        /// </summary>
-        /// <param name="value"> The floating point value to correct. </param>
-        /// <returns> <paramref name="value"/> rounded and clamped. </returns>
-        protected virtual float CorrectValue(float value)
-        {
-            float correctedValue = (float)Math.Round(value, Digits);
-            return Mathf.Clamp(correctedValue, MinValue, MaxValue);
-        }
-
-        private float GetInputValue()
+        private int GetInputValue()
         {
             // Try to get the value from the input field.
             try
             {
-                return float.Parse(input.text);
+                return int.Parse(input.text);
             }
             // If the input field is not formatted properly we default to 0.
             catch (FormatException)
             {
-                return 0.0f;
+                return 0;
             }
         }
 
         private void CheckSliderValueChanged()
         {
-            Value = slider.value;
+            Value = (int)slider.value;
         }
 
         /// <summary>
         /// Callback for <see cref="InputField.onValueChanged"/>. We update <see cref="Value"/>, but we don't set the input
         /// field's text. This means that, while changing, an input field can be in an improperly formatted state (e.g.
-        /// empty). <see cref="Value"/> will then be set to <see cref="CorrectValue(float)"/> applied to 0.
+        /// empty). <see cref="Value"/> will then be set to <see cref="CorrectValue(int)"/> applied to 0.
         /// </summary>
         private void CheckInputValueChanged()
         {
@@ -206,7 +174,7 @@ namespace _Project.UI.Scripts.Control_Panel
         /// <summary>
         /// Callback for <see cref="InputField.onEndEdit"/>. We update <see cref="Value"/> and set the input field's text.
         /// This means that if an input field was left in an improperly formatted state its text will be set to 
-        /// <see cref="CorrectValue(float)"/> applied to 0.
+        /// <see cref="CorrectValue(int)"/> applied to 0.
         /// </summary>
         private void CheckInputEndEdit()
         {
@@ -216,6 +184,7 @@ namespace _Project.UI.Scripts.Control_Panel
 
         private void Awake()
         {
+            slider.wholeNumbers = true;
             slider.value = MinValue; // Default to min value.
             slider.minValue = MinValue;
             slider.maxValue = MaxValue;

@@ -5,6 +5,7 @@ using _Project.Ray_Caster.Scripts.RC_Ray;
 using _Project.Ray_Caster.Scripts.Voxel_Grid;
 using _Project.Scripts;
 using _Project.UI.Scripts.Control_Panel;
+using _Project.UI.Scripts.Control_Panel.Property_Editors;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;

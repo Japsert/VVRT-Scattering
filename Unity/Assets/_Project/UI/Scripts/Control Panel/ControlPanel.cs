@@ -3,6 +3,7 @@ using _Project.Ray_Tracer.Scripts;
 using _Project.Ray_Tracer.Scripts.RT_Scene;
 using _Project.Ray_Tracer.Scripts.RT_Scene.RT_Camera;
 using _Project.Ray_Tracer.Scripts.RT_Scene.RT_Light;
+using _Project.Ray_Tracer.Scripts.RT_Scene.Volumes;
 using TMPro;
 using UnityEngine;
 
@@ -13,7 +14,6 @@ namespace _Project.UI.Scripts.Control_Panel
     /// </summary>
     public class ControlPanel : MonoBehaviour
     {
-        
         public enum SignalType
         {
             RayTracer,
@@ -27,23 +27,17 @@ namespace _Project.UI.Scripts.Control_Panel
             cameraButton.onClick.AddListener(() => function(SignalType.Camera));
             objectButton.onClick.AddListener(() => function(SignalType.Object));
         }
-        
-        [SerializeField]
-        private RayTracerProperties rayTracerProperties;
-        [SerializeField]
-        private CameraProperties cameraProperties;
-        [SerializeField]
-        private LightProperties lightProperties;
-        [SerializeField]
-        private MeshProperties meshProperties;
-        [SerializeField]
-        private TextMeshProUGUI emptyProperties;
-        [SerializeField]
-        private FolderButton rayTracerButton;
-        [SerializeField]
-        private FolderButton cameraButton;
-        [SerializeField]
-        private FolderButton objectButton;
+
+        [SerializeField] private RayTracerProperties rayTracerProperties;
+        [SerializeField] private CameraProperties cameraProperties;
+        [SerializeField] private LightProperties lightProperties;
+        [SerializeField] private HeterogeneousVolumeProperties heterogeneousVolumeProperties;
+        [SerializeField] private HomogeneousVolumeProperties homogeneousVolumeProperties;
+        [SerializeField] private MeshProperties meshProperties;
+        [SerializeField] private TextMeshProUGUI emptyProperties;
+        [SerializeField] private FolderButton rayTracerButton;
+        [SerializeField] private FolderButton cameraButton;
+        [SerializeField] private FolderButton objectButton;
 
         /// <summary>
         /// Show the control panel. By default this will not show any properties, just the panel background.
@@ -62,6 +56,8 @@ namespace _Project.UI.Scripts.Control_Panel
             cameraProperties.Hide();
             lightProperties.Hide();
             meshProperties.Hide();
+            heterogeneousVolumeProperties.Hide();
+            homogeneousVolumeProperties.Hide();
             emptyProperties.gameObject.SetActive(false);
             cameraButton.Conceal();
             objectButton.Conceal();
@@ -80,6 +76,8 @@ namespace _Project.UI.Scripts.Control_Panel
             rayTracerProperties.Hide();
             lightProperties.Hide();
             meshProperties.Hide();
+            heterogeneousVolumeProperties.Hide();
+            homogeneousVolumeProperties.Hide();
             emptyProperties.gameObject.SetActive(false);
             objectButton.Conceal();
             rayTracerButton.Conceal();
@@ -98,13 +96,59 @@ namespace _Project.UI.Scripts.Control_Panel
             rayTracerProperties.Hide();
             cameraProperties.Hide();
             meshProperties.Hide();
+            heterogeneousVolumeProperties.Hide();
+            homogeneousVolumeProperties.Hide();
             emptyProperties.gameObject.SetActive(false);
             rayTracerButton.Conceal();
             cameraButton.Conceal();
-            
+
             Show();
             objectButton.Highlight();
             lightProperties.Show(light);
+        }
+
+        /// <summary>
+        /// Show the volume properties for the given heterogeneous volume.
+        /// These properties can be changed via the shown UI.
+        /// </summary>
+        /// <param name="volume"> The heterogeneous volume whose properties will be shown. </param>
+        /// <seealso cref="ShowHomogeneousVolumeProperties"/>
+        public void ShowHeterogeneousVolumeProperties(RTHeterogeneousVolume volume)
+        {
+            rayTracerProperties.Hide();
+            cameraProperties.Hide();
+            lightProperties.Hide();
+            meshProperties.Hide();
+            homogeneousVolumeProperties.Hide();
+            emptyProperties.gameObject.SetActive(false);
+            cameraButton.Conceal();
+            rayTracerButton.Conceal();
+
+            Show();
+            objectButton.Highlight();
+            heterogeneousVolumeProperties.Show(volume);
+        }
+
+        /// <summary>
+        /// Show the volume properties for the given homogeneous volume.
+        /// These properties can be changed via the shown UI.
+        /// </summary>
+        /// <param name="volume"> The homogeneous volume whose properties will be shown. </param>
+        /// <seealso cref="ShowHeterogeneousVolumeProperties"/>
+        public void ShowHomogeneousVolumeProperties(RTHomogeneousVolume volume)
+        {
+            rayTracerProperties.Hide();
+            cameraProperties.Hide();
+            lightProperties.Hide();
+            meshProperties.Hide();
+            heterogeneousVolumeProperties.Hide();
+            emptyProperties.gameObject.SetActive(false);
+            cameraButton.Conceal();
+            rayTracerButton.Conceal();
+
+            Show();
+            objectButton.Highlight();
+            homogeneousVolumeProperties.Show(volume);
         }
 
         /// <summary>
@@ -119,7 +163,7 @@ namespace _Project.UI.Scripts.Control_Panel
             emptyProperties.gameObject.SetActive(false);
             cameraButton.Conceal();
             rayTracerButton.Conceal();
-            
+
             Show();
             objectButton.Highlight();
             meshProperties.Show(mesh);
@@ -132,7 +176,7 @@ namespace _Project.UI.Scripts.Control_Panel
             lightProperties.Hide();
             cameraButton.Conceal();
             rayTracerButton.Conceal();
-            
+
             Show();
             objectButton.Highlight();
             emptyProperties.gameObject.SetActive(true);
@@ -147,6 +191,8 @@ namespace _Project.UI.Scripts.Control_Panel
             cameraProperties.Hide();
             lightProperties.Hide();
             meshProperties.Hide();
+            heterogeneousVolumeProperties.Hide();
+            homogeneousVolumeProperties.Hide();
             emptyProperties.gameObject.SetActive(false);
             gameObject.SetActive(false);
         }
