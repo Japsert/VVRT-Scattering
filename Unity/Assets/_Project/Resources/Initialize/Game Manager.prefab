@@ -1186,6 +1186,160 @@ MonoBehaviour:
         any setting to get a little explanation of what it does.
       skippable: 1
       points: 0
+  - optionalTasksStart: 17
+    tasks:
+    - identifier: intro
+      name: Introduction
+      description: Welcome to the level on realistic volumetric rendering! In the
+        previous level, we explored scientific visualization of voxel grids, where
+        the goal was to visualize volumetric data as clear and readable as possible
+        for analysis. In this level, we will explore volume rendering from a perspective
+        of <b>realism</b>.
+      skippable: 1
+      points: 96
+    - identifier: goal
+      name: Goal
+      description: "The goal of this approach is to be able to render <i>participating
+        media</i> like smoke, clouds, water and fire (we\u2019ll call them \u2018volumes\u2019
+        from now on) realistically, by simulating their interaction with light and
+        other objects."
+      skippable: 1
+      points: 78
+    - identifier: irl
+      name: Volumes in real life
+      description: "In real life, volumes consist of countless tiny particles (like
+        water droplets or dust). Photons from light sources interact with these just
+        like you\u2019ve seen in the previous levels, by getting absorbed, reflected,
+        or refracted.\nSimulating each of these interactions in real time would be
+        nearly impossible. So instead, we use rendering techniques to approximate
+        these effects efficiently."
+      skippable: 1
+      points: 125
+    - identifier: interactions
+      name: Ray-particle interactions
+      description: "As a ray travels through a volume, its intensity changes in several
+        ways:\n<indent=5px>\u2022<indent=20px>It <b>decreases</b> due to <i>absorption</i>
+        (energy is lost).</indent>\n\u2022<indent=20px>It <b>increases</b> if the
+        medium emits light (<i>emission</i>).</indent>\n\u2022<indent=20px>And the
+        ray may <b>scatter</b>, changing direction after hitting particles.</indent></indent>\nScattering
+        can direct rays <i>away</i> from the camera (out-scattering) or <i>towards</i>
+        it (in-scattering), and as a result decrease or increase the intensity of
+        the pixel."
+      skippable: 1
+      points: 132
+    - identifier: rayMarching
+      name: Ray marching
+      description: "To simulate all of this, we use a technique called ray marching.
+        Just like in the previous level, we take steps along the ray. At each step,
+        we sample the volume\u2019s density, and update the ray\u2019s intensity
+        due to three of the four effects: absorption, emission, and out-scattering."
+      skippable: 1
+      points: 111
+    - identifier: singleScattering
+      name: Single scattering
+      description: "To compute the fourth and last effect, in-scattering, we shoot a ray from
+        the sample point towards the light. This tells us how much light is redirected
+        from the light towards the camera by a <i>single</i> bounce within the volume
+        \u2014 hence the name <b>single scattering</b>.\nTo see the algorithm visualized,
+        under Rendering Technique near the bottom of the control panel, select Single
+        Scattering."
+      skippable: 0
+      points: 105
+    - identifier: ss_stepSize
+      name: Step size
+      description: You can adjust the step size of the ray marching algorithm. A
+        smaller step size gives more detail in the volume, and more accurate volumetric
+        shadows and lighting, but increases render time.
+      skippable: 0
+      points: 73
+    - identifier: ss_singlePixelView
+      name: 'Single-pixel view '
+      description: "Click on a single pixel in the Render Preview window (bottom
+        right) to visualize the sample points in the volumes. They\u2019re shown as small black
+        spheres."
+      skippable: 0
+      points: 67
+    - identifier: ss_renderImage
+      name: Rendering an image
+      description: "Now, render the scene to see the difference between the two volumes:\n<indent=5px>\u2022<indent=20px>The
+        right volume is <b>homogeneous</b>: it has the same density everywhere.</indent>\n\u2022<indent=20px>The
+        left volume is <b>heterogeneous</b>: it\u2019s the Bunny model from the previous
+        level!</indent></indent>"
+      skippable: 0
+      points: 81
+    - identifier: parameters
+      name: 'Volume parameters '
+      description: 'The rate of absorption, emission and scattering can be adjusted
+        per volume. To change them, select a volume and adjust the sliders. Hover
+        over a parameter to see what it controls.
+
+        Try playing with the sliders
+        and see how the preview and final render react!'
+      skippable: 0
+      points: 87
+    - identifier: multipleScattering
+      name: Multiple scattering
+      description: "Single scattering works well for some media \u2014 but not all.
+        For example, in clouds, photons bounce around many times before reaching
+        the camera. To handle this, we simulate how light particles bounce around
+        randomly (a <i>random walk</i>) and average their contributions. This is
+        known as Monte Carlo simulation.\nIn the control panel, select Multiple Scattering
+        to continue."
+      skippable: 0
+      points: 92
+    - identifier: ms_nrWalks
+      name: Number of walks
+      description: "Monte Carlo simulation is quite computationally expensive, but
+        as hardware improves, it\u2019s used more and more. You can change the number
+        of walks per ray with the two corresponding sliders in the control panel,
+        which determine how many rays are drawn in the scene editor, and how many
+        walks are actually computed when you render an image."
+      skippable: 0
+      points: 101
+    - identifier: ms_singlePixelView
+      name: Single-pixel view
+      description: "Try clicking a pixel in the Render Preview again. This time,
+        you\u2019ll see the random walks drawn. If a walk is absorbed, it\u2019s
+        marked with a larger, dark red sphere."
+      skippable: 0
+      points: 72
+    - identifier: ms_renderImage
+      name: Rendering an image, again
+      description: You will see a lot more noise in the volumes, due to
+        the limited number of random walks. Try rendering an image again!
+      skippable: 0
+      points: 55
+    - identifier: phaseFunction
+      name: Phase Function
+      description: "Finally, there\u2019s one more control to explore: the phase
+        function. When light scatters in a volume, it doesn\u2019t bounce in random
+        directions. Instead, it follows a probability distribution called the <b>phase
+        function</b>. You can choose between two models:\n<indent=5px>\u2022<indent=20px><b>Isotropic</b>:
+        equal chance in any direction.</indent>\n\u2022<indent=20px><b>Henyey-Greenstein</b>:
+        more realistic; favors forward or backward scattering depending on its parameter
+        <i>g</i>.</indent></indent>\nSelect the Henyey-Greenstein phase function
+        to continue."
+      skippable: 0
+      points: 114
+    - identifier: g
+      name: <i>g</i>
+      description: "Adjust the Henyey-Greenstein parameter <i>g</i> in a volume\u2019s
+        properties panel."
+      skippable: 0
+      points: 45
+    - identifier: outro
+      name: Level complete
+      description: "Now that you\u2019ve seen how we simulate both single and multiple
+        scattering, let\u2019s put it to use in a well-known scene in the next level!"
+      skippable: 1
+      points: 50
+  - optionalTasksStart: 1
+    tasks:
+    - identifier: 
+      name: Cornell Box
+      description: This tutorial is still yet to be finished.
+      skippable: 0
+      points: 0
   - optionalTasksStart: 4
     tasks:
     - identifier: 
@@ -1213,106 +1367,6 @@ MonoBehaviour:
         you can enable "Cheat Mode" in the settings.
       skippable: 0
       points: 0
-  - optionalTasksStart: 0
-    tasks:
-    - identifier: intro
-      name: Introduction
-      description: Welcome to the level on realistic volumetric rendering! In the
-        previous level, we discussed scientific visualization of voxel grids, where
-        the goal was to visualize volumetric data as clear as possible for analysis.
-        In this level, we will explore volume rendering from a perspective of realism.
-      skippable: 1
-      points: 96
-    - identifier: goal
-      name: Goal
-      description: "The goal of this approach is to be able to render <i>participating
-        media</i> like smoke, clouds, water and fire (we\u2019ll call them simply
-        \u2018volumes\u2019 from now) realistically, by simulating their interaction
-        with light and other objects."
-      skippable: 1
-      points: 78
-    - identifier: irl
-      name: Volumes in real life
-      description: "In real life, volumes consist of many tiny particles (like water
-        droplets, or dust). Photons coming from the light sources interact with these
-        just like you\u2019ve seen in the previous levels, by getting absorbed, reflecting
-        and/or refracting. Because of the sheer number of photons, this is next to
-        impossible to simulate in real time. Instead, we use rendering techniques
-        to approximate this effect."
-      skippable: 1
-      points: 103
-    - identifier: interactions
-      name: Ray-particle interactions
-      description: A ray traversing the volume changes in intensity as a result of
-        several effects. Its intensity decreases due to particles absorbing energy,
-        and increases through emission. Additionally, rays can change direction (scatter)
-        inside of the medium, by reflecting off of the particles inside. This might
-        cause rays traveling in the direction of the camera to scatter <i>away</i>
-        (out-scattering), or rays traveling in another direction to be scattered
-        <i>towards</i> the camera (in-scattering).
-      skippable: 1
-      points: 119
-    - identifier: rayMarching
-      name: Volume ray marching
-      description: "The technique we\u2019ve implemented to simulate this is called
-        ray marching. Just like in the previous level, we march in steps along the
-        ray. At each sample, we change the intensity a little bit, due to absorption,
-        emission and out-scattering. To determine the in-scattering contribution,
-        we shoot a ray towards the light. This determines how much of the light is
-        being redirected towards the camera after a single interaction with the volume
-        \u2014 which is why it\u2019s called single scattering."
-      skippable: 1
-      points: 123
-    - identifier: ss_stepSize
-      name: Step size
-      description: You can change the step size of the ray marching algorithm. Lower
-        values result in more accurate volumetric shadows and lighting, and more
-        detail in the volume, but will result in longer render times.
-      skippable: 1
-      points: 73
-    - identifier: ss_singlePixelView
-      name: 'Single-pixel view '
-      description: Clicking on a single pixel in the Render Preview window in the
-        bottom right will show the points at which the volume density is sampled
-        with small black spheres.
-      skippable: 1
-      points: 67
-    - identifier: parameters
-      name: 'Volume parameters '
-      description: The rate of absorption, emission and scattering can be adjusted
-        per volume. To do this, click on the volume, and play with the sliders. Note
-        that there is only one slider for scattering, because the particles have
-        the same probability of scattering into or out of the direction of the camera.
-      skippable: 1
-      points: 87
-    - identifier: multipleScattering
-      name: 'Volume parameters '
-      description: "While single scattering can be a great approximation for some
-        volumes, it doesn\u2019t work quite as well for others. Most notably, light
-        rays in clouds scatter many times before emerging, so only accounting for
-        a single scattering is not enough. Instead, we simulate the photons\u2019
-        random walk behavior, and average their contributions to get the pixel color.
-        This is also called a Monte Carlo simulation."
-      skippable: 1
-      points: 92
-    - identifier: nrWalks
-      name: Number of walks
-      description: "Monte Carlo simulation is quite computationally expensive, but
-        as hardware improves, it\u2019s used more and more. You can change the number
-        of walks per ray with the two corresponding sliders in the control panel.
-        The first slider is for how many rays you see drawn in the scene editor,
-        and the second is how many walks are actually computed when you render an
-        image."
-      skippable: 1
-      points: 80
-    - identifier: ms_singlePixelView
-      name: Single-pixel view
-      description: "Try clicking on a single pixel in the Render Preview window with
-        this technique, to show the ray\u2019s random walks in the volume. Again,
-        you will see samples drawn in the scene, but this time, when walks are absorbed,
-        it is indicated with a bigger, dark red sphere."
-      skippable: 1
-      points: 72
   Badges:
   - type: 1
     badgeName: Experimenter

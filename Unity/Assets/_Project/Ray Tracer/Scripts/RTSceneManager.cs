@@ -69,20 +69,11 @@ namespace _Project.Ray_Tracer.Scripts
         [SerializeField, Range(0, 12)] private int pointSpotLightLimit = 12;
         [SerializeField, Range(0, 5)] private int areaLightLimit = 5;
 
-        public bool DeleteAllowed
-        {
-            get => deleteAllowed;
-        }
+        public bool DeleteAllowed => deleteAllowed;
 
-        public int PointSpotLightLimit
-        {
-            get => pointSpotLightLimit;
-        }
+        public int PointSpotLightLimit => pointSpotLightLimit;
 
-        public int AreaLightLimit
-        {
-            get => areaLightLimit;
-        }
+        public int AreaLightLimit => areaLightLimit;
 
         [Serializable]
         public class Event : UnityEvent
@@ -348,7 +339,7 @@ namespace _Project.Ray_Tracer.Scripts
                 selection.Camera.ResetColor();
             else if (selection.Type.BaseType == typeof(RTLight))
                 selection.Light.ResetHighlight();
-            else if (selection.Type == typeof(RTVolume))
+            else if (selection.Type.IsSubclassOf(typeof(RTVolume)))
                 selection.Volume.Outline.enabled = false;
             else if (selection.Type == typeof(RTMesh))
                 selection.Mesh.Outline.enabled = false;

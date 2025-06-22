@@ -7,20 +7,26 @@ using UnityEngine;
 
 namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
 {
-    public class VolumeLoader
+    public class VolumeLoader : MonoBehaviour
     {
+        public static VolumeLoader Instance { get; private set; }
+
+        private VolumeLoader()
+        {
+        }
+
         public void Load()
         {
             LoadActiveVolumes();
-            // StartCoroutine(LoadAllVolumesInBackground());
+            StartCoroutine(LoadAllVolumesInBackground());
         }
 
         private List<RTVolume> ActiveVolumes => RTSceneManager.Get().Scene.Volumes;
 
-        public bool AreAllActiveVolumesLoaded()
-        {
-            return ActiveVolumes.All(volume => volume is not RTHeterogeneousVolume { IsLoaded: false });
-        }
+        // public bool AreAllActiveVolumesLoaded()
+        // {
+        //     return ActiveVolumes.All(volume => volume is not RTHeterogeneousVolume { IsLoaded: false });
+        // }
 
         public delegate void ActiveVolumesLoaded();
 
@@ -87,6 +93,13 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
                 Debug.Log("all volumes loaded!");
                 OnAllVolumesLoaded?.Invoke(); // see TODO in Awake()
             }
+        }
+
+        private void Awake()
+        {
+            if (Instance)
+                Debug.LogError($"Instance of {GetType()} instantiated twice!");
+            Instance = this;
         }
     }
 }

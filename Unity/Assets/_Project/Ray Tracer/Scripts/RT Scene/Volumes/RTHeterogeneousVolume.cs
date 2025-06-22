@@ -8,34 +8,29 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
     public abstract class RTHeterogeneousVolume : RTVolume
     {
         public abstract VolumeManager.VolumeType VolumeType { get; }
-        public abstract ColorTableEntry[] ColorLookupTable { get; }
 
         // Grid
         protected abstract float[,,] Grid { get; }
-        protected abstract IntVector3 GridSize { get; }
-        public abstract bool IsLoaded { get; }
+        protected abstract IntVector3 Size { get; }
+        protected bool IsLoaded { get; set; }
+        // public abstract void Preload();
 
-        // TODO: remove when I'm sure color works
-        private Vector3 UnityCoordsToGridCoords(Vector3 unityCoords)
+        private float GridAt(int x, int y, int z)
         {
-            Vector3 gridCoords = unityCoords;
-            // We first translate so the unity cube is at (0, 0, 0). We of course do not actually translate the whole 
-            // cube, we simply translate the given unityPosition to where it would be if the whole cube had been translated
-            gridCoords -= Position;
-            // Now that our position has its origin at (0, 0, 0) we can rotate it (since rotation is always around the origin)
-            gridCoords = Quaternion.Inverse(transform.rotation) * gridCoords;
-            // Now that the cube and grid are both rotated the same way, we can set their bottom left corners to the same position
-            // The middle of the cube is currently at (0, 0, 0). We must use the cubes scale to set its bottom left corner to (0,0,0)
-            gridCoords += Scale / 2;
-            // Now that they both have the same rotation and their bottom left corners are at (0,0,0) we can scale them
-            // so they are the same size
-            // First divide by the scale of the unity volume, then multiply by the scale of the grid
-            gridCoords.x = gridCoords.x / Scale.x * (GridSize.x - 1);
-            gridCoords.y = gridCoords.y / Scale.y * (GridSize.y - 1);
-            gridCoords.z = gridCoords.z / Scale.z * (GridSize.z - 1);
-            // Now we have the grid coordinates equivalent to the given unity coordinates
-            return gridCoords;
+            // Debug.Log(Grid.Length);
+            // return Grid[x + y * Size.x + z * Size.x * Size.y];
+            try
+            {
+                return Grid[x, y, z];
+            }
+            catch (Exception)
+            {
+                // Debug.LogError($"{VolumeType}, {x}, {y}, {z}, {e}");
+                return 0f;
+            }
         }
+
+        // [SerializeField] protected VolumeAsset volumeAsset;
 
         private Vector3 WorldPosToGridPos(Vector3 worldPoint)
         {
@@ -56,16 +51,16 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
             );
             // Finally, we get the (non-interpolated) coordinates in the grid.
             Vector3 gridCoords = new(
-                normalized.x * GridSize.x,
-                normalized.y * GridSize.y,
-                normalized.z * GridSize.z
+                normalized.x * Size.x,
+                normalized.y * Size.y,
+                normalized.z * Size.z
             );
             return gridCoords;
         }
 
         private float NearestNeighbor(Vector3 gridCoords)
         {
-            return Grid[(int)gridCoords.x, (int)gridCoords.y, (int)gridCoords.z];
+            return GridAt((int)gridCoords.x, (int)gridCoords.y, (int)gridCoords.z);
         }
 
         private float TriLinearInterpolation(Vector3 point)
@@ -75,20 +70,19 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
             int y = point.y <= 0 ? 0 : (int)point.y;
             int z = point.z <= 0 ? 0 : (int)point.z;
             // edge cases in case the point is exactly on the far edge of the voxelgrid and original cube would be out of bound
-            x = x < GridSize.x - 1 ? x : GridSize.x - 2;
-            y = y < GridSize.y - 1 ? y : GridSize.y - 2;
-            z = z < GridSize.z - 1 ? z : GridSize.z - 2;
+            x = x < Size.x - 1 ? x : Size.x - 2;
+            y = y < Size.y - 1 ? y : Size.y - 2;
+            z = z < Size.z - 1 ? z : Size.z - 2;
             // // xD, yD, and zD are the differences between each of x, y, z and the smaller coordinate related
-            float xD, yD, zD;
-            xD = point.x - x;
-            yD = point.y - y;
-            zD = point.z - z;
+            float xD = point.x - x;
+            float yD = point.y - y;
+            float zD = point.z - z;
             // Interpolate the x so we are left with a plane
             float[,] plane = new float[2, 2];
-            plane[0, 0] = Grid[x, y, z] * (1 - xD) + Grid[x + 1, y, z] * xD;
-            plane[0, 1] = Grid[x, y, z + 1] * (1 - xD) + Grid[x + 1, y, z + 1] * xD;
-            plane[1, 0] = Grid[x, y + 1, z] * (1 - xD) + Grid[x + 1, y + 1, z] * xD;
-            plane[1, 1] = Grid[x, y + 1, z + 1] * (1 - xD) + Grid[x + 1, y + 1, z + 1] * xD;
+            plane[0, 0] = GridAt(x, y, z) * (1 - xD) + GridAt(x + 1, y, z) * xD;
+            plane[0, 1] = GridAt(x, y, z + 1) * (1 - xD) + GridAt(x + 1, y, z + 1) * xD;
+            plane[1, 0] = GridAt(x, y + 1, z) * (1 - xD) + GridAt(x + 1, y + 1, z) * xD;
+            plane[1, 1] = GridAt(x, y + 1, z + 1) * (1 - xD) + GridAt(x + 1, y + 1, z + 1) * xD;
             // Interpolate the y so we are left with the z line
             float[] line = new float[2];
             line[0] = plane[0, 0] * (1 - yD) + plane[1, 0] * yD;
@@ -100,25 +94,13 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
         public override float DensityAt(Vector3 worldPos)
         {
             Vector3 gridPos = WorldPosToGridPos(worldPos);
-            return VolumeManager.Instance.interpolation switch
+            return VolumeManager.Instance.Interpolation switch
             {
                 VolumeManager.InterpolationType.NearestNeighbor => NearestNeighbor(gridPos),
                 VolumeManager.InterpolationType.Trilinear => TriLinearInterpolation(gridPos),
-                _ => throw new ArgumentOutOfRangeException(nameof(VolumeManager.interpolation),
-                    VolumeManager.Instance.interpolation, "invalid enum value")
+                _ => throw new ArgumentOutOfRangeException(nameof(VolumeManager.Interpolation),
+                    VolumeManager.Instance.Interpolation, "invalid enum value")
             };
-        }
-
-        public struct ColorTableEntry
-        {
-            public float Density;
-            public Color ColorAlpha;
-
-            public ColorTableEntry(float density, Color colorAlpha)
-            {
-                Density = density;
-                ColorAlpha = colorAlpha;
-            }
         }
 
         protected new void Awake()

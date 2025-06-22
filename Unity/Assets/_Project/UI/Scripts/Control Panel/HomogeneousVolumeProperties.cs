@@ -19,6 +19,7 @@ namespace _Project.UI.Scripts.Control_Panel
         [SerializeField] private Vector3Edit positionEdit;
         [SerializeField] private Vector3Edit rotationEdit;
         [SerializeField] private Vector3Edit scaleEdit;
+        [SerializeField] private ColorEdit emissionColorEdit;
 
         [SerializeField] private FloatEdit uniformDensityEdit;
         [SerializeField] private FloatEdit absorptionEdit;
@@ -48,12 +49,21 @@ namespace _Project.UI.Scripts.Control_Panel
             positionEdit.Value = volume.Position;
             rotationEdit.Value = volume.Rotation;
             scaleEdit.Value = volume.Scale;
+            emissionColorEdit.Color = volume.EmissionColor;
 
-            uniformDensityEdit.Value = _volume.UniformDensity;
-            absorptionEdit.Value = _volume.Absorption;
-            scatteringEdit.Value = _volume.Scattering;
-            emissionEdit.Value = _volume.Emission;
-            gEdit.Value = _volume.G;
+            uniformDensityEdit.Value = volume.UniformDensity;
+            absorptionEdit.Value = volume.Absorption;
+            scatteringEdit.Value = volume.Scattering;
+            emissionEdit.Value = volume.Emission;
+            gEdit.Value = volume.G;
+            extinctionDisplay.Value = volume.Extinction;
+            albedoDisplay.Value = volume.Albedo;
+            
+            volume.OnMeshChanged.AddListener(UpdateDisplays);
+        }
+
+        private void UpdateDisplays()
+        {
             extinctionDisplay.Value = _volume.Extinction;
             albedoDisplay.Value = _volume.Albedo;
         }
@@ -64,14 +74,16 @@ namespace _Project.UI.Scripts.Control_Panel
         public void Hide()
         {
             gameObject.SetActive(false);
+            _volume?.OnMeshChanged.RemoveListener(UpdateDisplays);
             _volume = null;
         }
 
         private void Awake()
         {
-            positionEdit.OnValueChanged.AddListener((value) => { _volume.Position = value; });
-            rotationEdit.OnValueChanged.AddListener((value) => { _volume.Rotation = value; });
-            scaleEdit.OnValueChanged.AddListener((value) => { _volume.Scale = value; });
+            positionEdit.OnValueChanged.AddListener(value => _volume.Position = value);
+            rotationEdit.OnValueChanged.AddListener(value => _volume.Rotation = value);
+            scaleEdit.OnValueChanged.AddListener(value => _volume.Scale = value);
+            emissionColorEdit.OnValueChanged.AddListener(value => _volume.EmissionColor = value);
             
             uniformDensityEdit.OnValueChanged.AddListener(value => _volume.UniformDensity = value);
             absorptionEdit.OnValueChanged.AddListener(value => _volume.Absorption = value);

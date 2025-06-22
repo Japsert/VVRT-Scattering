@@ -3,6 +3,7 @@ using System.Collections;
 using _Project.Ray_Tracer.Scripts;
 using _Project.Scripts;
 using _Project.UI.Scripts.Control_Panel.Property_Editors;
+using _Project.UI.Scripts.Tutorial;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -110,7 +111,7 @@ namespace _Project.UI.Scripts.Control_Panel
             stepSizeEdit.Value = rayTracer.StepSizeSS;
             nrRandomWalksSceneEdit.Value = rayTracer.NrRandomWalksMSScene;
             nrRandomWalksRenderEdit.Value = rayTracer.NrRandomWalksMSRender;
-            phaseFunctionEdit.Value = (int)rayTracer.PhaseFunctionMS;
+            phaseFunctionEdit.Value = (int)rayTracer.PhaseFunction;
         }
 
         /// <summary>
@@ -148,7 +149,7 @@ namespace _Project.UI.Scripts.Control_Panel
             renderShadowsEdit.OnValueChanged.AddListener((value) => { RTSceneManager.Get().SetShadows(value); });
         }
 
-        // TODO: it's better design to not have each property set their dependants' interactivity,
+        // TODO (JT): it's better design to not have each property set their dependants' interactivity,
         // but instead have each dependant set their own interactivity based on their dependencies,
         // whenever any of those dependencies' value changes.
         protected virtual void Awake()
@@ -244,13 +245,10 @@ namespace _Project.UI.Scripts.Control_Panel
             // Volume marching
             Debug.Log("adding listener to ray march algorithm change");
             rayMarchAlgorithmEdit.onValueChanged.AddListener(RayMarchAlgorithmChanged);
-            stepSizeEdit.OnValueChanged.AddListener(value => { rayTracer.StepSizeSS = value; });
-            nrRandomWalksSceneEdit.OnValueChanged.AddListener(value => { rayTracer.NrRandomWalksMSScene = value; });
-            nrRandomWalksRenderEdit.OnValueChanged.AddListener(value => { rayTracer.NrRandomWalksMSRender = value; });
-            phaseFunctionEdit.onValueChanged.AddListener(value =>
-            {
-                rayTracer.PhaseFunctionMS = (UnityRayTracer.PhaseFunctionMSType)value;
-            });
+            stepSizeEdit.OnValueChanged.AddListener(value => rayTracer.StepSizeSS = value);
+            nrRandomWalksSceneEdit.OnValueChanged.AddListener(value => rayTracer.NrRandomWalksMSScene = value);
+            nrRandomWalksRenderEdit.OnValueChanged.AddListener(value => rayTracer.NrRandomWalksMSRender = value);
+            phaseFunctionEdit.onValueChanged.AddListener(PhaseFunctionChanged);
 
             // Buttons
             renderImageButton.onClick.AddListener(RenderImage);
@@ -288,13 +286,33 @@ namespace _Project.UI.Scripts.Control_Panel
                     stepSizeEdit.Interactable = true;
                     nrRandomWalksSceneEdit.Interactable = false;
                     nrRandomWalksRenderEdit.Interactable = false;
-                    phaseFunctionEdit.Interactable = false;
+                    phaseFunctionEdit.Interactable = true;
+                    // complete task here instead of in the editor, because we don't have switch statements there
+                    TutorialManager.CompleteTask("singleScattering");
                     break;
                 case UnityRayTracer.RayMarchAlgorithmType.MultipleScattering:
                     stepSizeEdit.Interactable = false;
                     nrRandomWalksSceneEdit.Interactable = true;
                     nrRandomWalksRenderEdit.Interactable = true;
                     phaseFunctionEdit.Interactable = true;
+                    // complete task here instead of in the editor, because we don't have switch statements there
+                    TutorialManager.CompleteTask("multipleScattering");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(enumValue), enumValue, "invalid enum value");
+            }
+        }
+
+        private void PhaseFunctionChanged(int value)
+        {
+            UnityRayTracer.PhaseFunctionType enumValue = (UnityRayTracer.PhaseFunctionType)value;
+            rayTracer.PhaseFunction = enumValue;
+            switch (enumValue)
+            {
+                case UnityRayTracer.PhaseFunctionType.Isotropic:
+                    break;
+                case UnityRayTracer.PhaseFunctionType.HenyeyGreenstein:
+                    TutorialManager.CompleteTask("phaseFunction");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(enumValue), enumValue, "invalid enum value");

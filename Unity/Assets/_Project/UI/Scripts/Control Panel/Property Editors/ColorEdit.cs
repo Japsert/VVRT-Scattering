@@ -16,7 +16,10 @@ namespace _Project.UI.Scripts.Control_Panel.Property_Editors
     public class ColorEdit : MonoBehaviour
     {
         [Serializable]
-        public class ValueChanged : UnityEvent<Color> { }
+        public class ValueChanged : UnityEvent<Color>
+        {
+        }
+
         public ValueChanged OnValueChanged;
 
         /// <summary>
@@ -25,17 +28,13 @@ namespace _Project.UI.Scripts.Control_Panel.Property_Editors
         /// </summary>
         public bool PickerHovered { get; set; }
 
-        [SerializeField]
-        private TextMeshProUGUI title;
-        
-        [SerializeField]
-        Button colorButton;
-        
-        [SerializeField]
-        ColorPicker colorPicker;
+        [SerializeField] private TextMeshProUGUI title;
 
-        [SerializeField]
-        private string tooltip;
+        [SerializeField] Button colorButton;
+
+        [SerializeField] ColorPicker colorPicker;
+
+        [SerializeField] private string tooltip;
 
         /// <summary>
         /// The displayed text of this <see cref="ColorEdit"/>.
@@ -47,6 +46,7 @@ namespace _Project.UI.Scripts.Control_Panel.Property_Editors
         }
 
         private Color color;
+
         /// <summary>
         /// The color of this <see cref="ColorEdit"/>. When set, the color of the button UI element will be updated.
         /// <see cref="OnValueChanged"/> will be invoked when it is set.
@@ -70,8 +70,8 @@ namespace _Project.UI.Scripts.Control_Panel.Property_Editors
             }
         }
 
-        [SerializeField]
-        private bool interactable;
+        [SerializeField] private bool interactable;
+
         /// <summary>
         /// Whether this <see cref="ColorEdit"/>'s UI is interactable.
         /// </summary>
@@ -95,9 +95,10 @@ namespace _Project.UI.Scripts.Control_Panel.Property_Editors
 
         public void ToggleColorPicker()
         {
-            if(!colorPicker.gameObject.activeSelf) OpenColorPicker();
+            if (!colorPicker.gameObject.activeSelf) OpenColorPicker();
             else CloseColorPicker();
         }
+
         private void OpenColorPicker()
         {
             colorPicker.AssignColor(Color);
@@ -114,7 +115,7 @@ namespace _Project.UI.Scripts.Control_Panel.Property_Editors
         private void Awake()
         {
             CloseColorPicker();
-            
+
             // Update interactability based on serialized value in inspector.
             Interactable = interactable;
         }
@@ -123,7 +124,7 @@ namespace _Project.UI.Scripts.Control_Panel.Property_Editors
         {
             CloseColorPicker();
         }
-        
+
 
         private void Update()
         {

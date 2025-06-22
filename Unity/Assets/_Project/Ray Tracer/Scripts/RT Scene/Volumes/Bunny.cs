@@ -5,38 +5,24 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
 {
     public class Bunny : RTHeterogeneousVolume
     {
-        public override VolumeManager.VolumeType VolumeType => VolumeManager.VolumeType.Bucky;
+        public override VolumeManager.VolumeType VolumeType => VolumeManager.VolumeType.Bunny;
         
         private const string Path = "/bunny512x512x361.raw";
 
-        private static float _maxDensity;
         private static float[,,] _grid;
-        private static readonly IntVector3 Size = new(512, 512, 361);
-        private static bool _isLoaded = false;
-
-        public static void Load()
-        {
-            if (_isLoaded) return;
-            _grid = LoadFromFile(Path, Size, out _maxDensity);
-            _isLoaded = true;
-        }
-
+        private static float _maxDensity;
+        
         protected override float[,,] Grid => _grid;
-        protected override IntVector3 GridSize => Size;
-
-        public override ColorTableEntry[] ColorLookupTable { get; } =
-        {
-            new(0f, Color.clear),
-            new(0f, Color.clear),
-            new(0f, Color.clear),
-            new(0.568f, new Color(0, 1, 0, 0.3f)),
-            new(1.0f, Color.clear),
-        };
-
-        public override bool IsLoaded => _isLoaded;
-
+        protected override IntVector3 Size => new(512, 512, 361);
         protected override float MaxDensity => _maxDensity;
-
+        
+        private void Start()
+        {
+            if (IsLoaded) return;
+            _grid = LoadFromFile(Path, Size, out _maxDensity);
+            IsLoaded = true;
+        }
+        
         private new void Awake()
         {
             // The bunny is upside down by default, so we set it upright.
