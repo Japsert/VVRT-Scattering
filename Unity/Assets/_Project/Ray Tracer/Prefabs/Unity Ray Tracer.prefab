@@ -53,9 +53,8 @@ MonoBehaviour:
   rayMarchAlgorithm: 0
   stepSizeSS: 0.5
   nrRandomWalksMSScene: 3
-  nrRandomWalksMSRender: 100
+  nrRandomWalksMSRender: 5
   phaseFunctionMS: 1
-  maxAngleDeg: 10
   acceleratedObject: {fileID: 0}
   accelerationStatus: {fileID: 0}
   raysIgnored: {fileID: 0}

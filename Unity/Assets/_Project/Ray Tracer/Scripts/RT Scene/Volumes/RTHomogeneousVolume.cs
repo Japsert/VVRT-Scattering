@@ -5,8 +5,10 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
 {
     public class RTHomogeneousVolume : RTVolume
     {
+        [SerializeField] private MeshChanged onUniformDensityChanged; 
+        
         [Header("Homogeneous volume settings")]
-        [SerializeField] private float uniformDensity = 0.5f;
+        [SerializeField, Range(0f, 1f)] private float uniformDensity = 0.5f;
 
         public float UniformDensity
         {
@@ -16,6 +18,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
                 if (uniformDensity == value) return;
                 uniformDensity = value;
                 OnMeshChanged.Invoke();
+                onUniformDensityChanged.Invoke();
             }
         }
 

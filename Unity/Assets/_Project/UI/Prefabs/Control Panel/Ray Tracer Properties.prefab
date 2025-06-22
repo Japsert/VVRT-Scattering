@@ -11170,16 +11170,20 @@ PrefabInstance:
     m_TransformParent: {fileID: 3641045733115134028}
     m_Modifications:
     - target: {fileID: -5504549249078750844, guid: 3c9b8288108f341739e131805f7e1714, type: 3}
-      propertyPath: maxValue
-      value: 100
+      propertyPath: tooltip
+      value: 'The '
       objectReference: {fileID: 0}
-    - target: {fileID: 590595068844967958, guid: 3c9b8288108f341739e131805f7e1714, type: 3}
-      propertyPath: m_Value
+    - target: {fileID: -5504549249078750844, guid: 3c9b8288108f341739e131805f7e1714, type: 3}
+      propertyPath: maxValue
       value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 590595068844967958, guid: 3c9b8288108f341739e131805f7e1714, type: 3}
+      propertyPath: m_Value
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 590595068844967958, guid: 3c9b8288108f341739e131805f7e1714, type: 3}
       propertyPath: m_MaxValue
-      value: 100
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 590595068916426999, guid: 3c9b8288108f341739e131805f7e1714, type: 3}
       propertyPath: m_text
@@ -11187,7 +11191,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 590595069171861445, guid: 3c9b8288108f341739e131805f7e1714, type: 3}
       propertyPath: m_Text
-      value: 10
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 590595069423735710, guid: 3c9b8288108f341739e131805f7e1714, type: 3}
       propertyPath: m_AnchorMax.x
@@ -11287,7 +11291,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 590595069595218159, guid: 3c9b8288108f341739e131805f7e1714, type: 3}
       propertyPath: m_Text
-      value: 10
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 590595069595218159, guid: 3c9b8288108f341739e131805f7e1714, type: 3}
       propertyPath: m_KeyboardType
@@ -12085,7 +12089,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 590595068844967958, guid: 9c7e9f84e5dea9c40a41d59563b4d99b, type: 3}
       propertyPath: m_MinValue
-      value: 0.01
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 590595068916426999, guid: 9c7e9f84e5dea9c40a41d59563b4d99b, type: 3}
       propertyPath: m_text
@@ -12197,7 +12201,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 590595069432362183, guid: 9c7e9f84e5dea9c40a41d59563b4d99b, type: 3}
       propertyPath: minValue
-      value: 0.01
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 590595069595218159, guid: 9c7e9f84e5dea9c40a41d59563b4d99b, type: 3}
       propertyPath: m_Text
@@ -12499,7 +12503,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6811350695874319822, guid: aabc2566bf54b4efab4dd591802a4d3f, type: 3}
       propertyPath: tooltip
-      value: The
+      value: The algorithm to use on rays entering volumes
       objectReference: {fileID: 0}
     - target: {fileID: 8237266586532320952, guid: aabc2566bf54b4efab4dd591802a4d3f, type: 3}
       propertyPath: m_text
@@ -13623,6 +13627,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3641045733115134028}
     m_Modifications:
+    - target: {fileID: -5504549249078750844, guid: 3c9b8288108f341739e131805f7e1714, type: 3}
+      propertyPath: tooltip
+      value: The number of walks visualized per ray entering a volume.
+      objectReference: {fileID: 0}
     - target: {fileID: -5504549249078750844, guid: 3c9b8288108f341739e131805f7e1714, type: 3}
       propertyPath: maxValue
       value: 10

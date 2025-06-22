@@ -535,7 +535,7 @@ namespace _Project.Ray_Tracer.Scripts
             rtSceneManager = RTSceneManager.Get();
             rayTracer = UnityRayTracer.Get();
 
-            _volumeManager.OnActiveVolumesLoaded += UpdateRays;
+            // _volumeManager.OnActiveVolumesLoaded += UpdateRays;
             rtSceneManager.Scene.OnSceneChanged += UpdateRays;
             rayTracer.OnRayTracerChanged += UpdateRays;
             UpdateRays();   // This is needed for level-changes.
@@ -571,9 +571,9 @@ namespace _Project.Ray_Tracer.Scripts
         /// </summary>
         public virtual void UpdateRays()
         {
-            Debug.Log("updating rays");
-            if (!_volumeManager.AreAllActiveVolumesLoaded())
-                return;
+            // Debug.Log("updating rays");
+            // if (!_volumeManager.AreAllActiveVolumesLoaded())
+                // return;
             rays = rayTracer.Render();
             rayObjectPool.MakeRayObjects(rays);
             rtSceneManager.UpdateImage(GetRayColors());

@@ -18,6 +18,7 @@ namespace _Project.UI.Scripts.Control_Panel
         [SerializeField] private Vector3Edit positionEdit;
         [SerializeField] private Vector3Edit rotationEdit;
         [SerializeField] private Vector3Edit scaleEdit;
+        [SerializeField] private ColorEdit emissionColorEdit;
 
         [SerializeField] private DropdownEdit volumeTypeEdit;
         [SerializeField] private FloatEdit absorptionEdit;
@@ -45,6 +46,7 @@ namespace _Project.UI.Scripts.Control_Panel
             positionEdit.Value = volume.Position;
             rotationEdit.Value = volume.Rotation;
             scaleEdit.Value = volume.Scale;
+            emissionColorEdit.Color = volume.EmissionColor;
             volumeTypeEdit.Value = (int)volume.VolumeType;
 
             absorptionEdit.Value = volume.Absorption;
@@ -87,6 +89,7 @@ namespace _Project.UI.Scripts.Control_Panel
             positionEdit.OnValueChanged.AddListener(value => _volume.Position = value);
             rotationEdit.OnValueChanged.AddListener(value => _volume.Rotation = value);
             scaleEdit.OnValueChanged.AddListener(value => _volume.Scale = value);
+            emissionColorEdit.OnValueChanged.AddListener(value => _volume.EmissionColor = value);
             volumeTypeEdit.onValueChanged.AddListener(enumValue =>
             {
                 if (_volume.VolumeType == (VolumeManager.VolumeType)enumValue) return;

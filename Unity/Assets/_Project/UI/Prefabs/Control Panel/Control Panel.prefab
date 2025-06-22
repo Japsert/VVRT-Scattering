@@ -3524,6 +3524,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -240
       objectReference: {fileID: 0}
+    - target: {fileID: 1553589604382208899, guid: 113385e0ba0854642abfadb26691365c, type: 3}
+      propertyPath: tooltip
+      value: The function that determines in which direction rays are likely to bounce.
+      objectReference: {fileID: 0}
     - target: {fileID: 1668234370414582979, guid: 113385e0ba0854642abfadb26691365c, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -3852,6 +3856,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -64
       objectReference: {fileID: 0}
+    - target: {fileID: 4132356726218153063, guid: 113385e0ba0854642abfadb26691365c, type: 3}
+      propertyPath: m_Value
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4193656829148394069, guid: 113385e0ba0854642abfadb26691365c, type: 3}
       propertyPath: m_SizeDelta.x
       value: 200
@@ -3888,6 +3896,14 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -1472
       objectReference: {fileID: 0}
+    - target: {fileID: 4988774314510554548, guid: 113385e0ba0854642abfadb26691365c, type: 3}
+      propertyPath: tooltip
+      value: The number of random walks visualized per ray entering a volume.
+      objectReference: {fileID: 0}
+    - target: {fileID: 5363470890096687454, guid: 113385e0ba0854642abfadb26691365c, type: 3}
+      propertyPath: m_Value
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 5363470890583098764, guid: 113385e0ba0854642abfadb26691365c, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -3911,6 +3927,10 @@ PrefabInstance:
     - target: {fileID: 5363470890591789782, guid: 113385e0ba0854642abfadb26691365c, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5363470890821976487, guid: 113385e0ba0854642abfadb26691365c, type: 3}
+      propertyPath: m_Text
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5363470891683490934, guid: 113385e0ba0854642abfadb26691365c, type: 3}
       propertyPath: m_AnchorMax.x
@@ -4203,6 +4223,15 @@ PrefabInstance:
     - target: {fileID: 7840609448016794820, guid: 113385e0ba0854642abfadb26691365c, type: 3}
       propertyPath: m_AnchorMin.x
       value: 0.025
+      objectReference: {fileID: 0}
+    - target: {fileID: 8198590722002313420, guid: 113385e0ba0854642abfadb26691365c, type: 3}
+      propertyPath: tooltip
+      value: The number of random walks the ray tracer simulates when rendering an
+        image.
+      objectReference: {fileID: 0}
+    - target: {fileID: 8198590722002313420, guid: 113385e0ba0854642abfadb26691365c, type: 3}
+      propertyPath: maxValue
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 8621779204412851971, guid: 113385e0ba0854642abfadb26691365c, type: 3}
       propertyPath: m_AnchorMax.y

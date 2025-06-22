@@ -5,19 +5,16 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
 {
     public class VolumeManager : MonoBehaviour
     {
+        // [SerializeField] private VolumeAsset bucky;
+        // [SerializeField] private VolumeAsset bunny;
+        // [SerializeField] private VolumeAsset engine;
+        // [SerializeField] private VolumeAsset hazelnut;
+        
         public static VolumeManager Instance { get; private set; }
 
         private VolumeManager()
         {
         }
-
-        private readonly VolumeLoader _volumeLoader = new();
-
-        public delegate void ActiveVolumesLoaded();
-
-        public event ActiveVolumesLoaded OnActiveVolumesLoaded;
-
-        public bool AreAllActiveVolumesLoaded() => _volumeLoader.AreAllActiveVolumesLoaded();
 
         public enum VolumeType
         {
@@ -41,26 +38,32 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene.Volumes
             };
         }
 
-        [SerializeField] public InterpolationType interpolation;
-
         public enum InterpolationType
         {
             NearestNeighbor,
-            Trilinear
+            Trilinear,
         }
-        
+
+        public InterpolationType Interpolation => InterpolationType.NearestNeighbor;
+
         private void Awake()
         {
             if (Instance)
                 Debug.LogError($"Instance of {GetType()} instantiated twice!");
             Instance = this;
+
+            // StartCoroutine(PreloadVolumes());
         }
 
-        private void Start()
-        {
-            Debug.Log("loading volumes...");
-            _volumeLoader.Load();
-            _volumeLoader.OnActiveVolumesLoaded += () => { OnActiveVolumesLoaded?.Invoke(); };
-        }
+        // private IEnumerator PreloadVolumes()
+        // {
+        //     Debug.Log("loading volumes...");
+        //
+        //     bucky.Load();
+        //     // bunny.Preload();
+        //     // engine.Preload();
+        //     // hazelnut.Preload();
+        //     yield return null;
+        // }
     }
 }

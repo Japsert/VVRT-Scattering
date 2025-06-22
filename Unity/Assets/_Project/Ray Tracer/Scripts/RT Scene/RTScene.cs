@@ -233,7 +233,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
             Volumes.Add(volume);
             Meshes.Add(volume);
             volume.OnMeshChanged.AddListener(SceneObjectChanged);
-            OnSceneChanged?.Invoke();;
+            OnSceneChanged?.Invoke();
         }
 
         public void RemoveVolume(RTVolume volume)
@@ -241,7 +241,7 @@ namespace _Project.Ray_Tracer.Scripts.RT_Scene
             Volumes.Remove(volume);
             Meshes.Add(volume);
             volume.OnMeshChanged.RemoveListener(SceneObjectChanged);
-            OnSceneChanged?.Invoke();;
+            OnSceneChanged?.Invoke();
         }
         
         /// <summary>

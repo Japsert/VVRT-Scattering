@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Transactions;
 using _Project.Ray_Tracer.Scripts.RT_Ray;
 using _Project.Ray_Tracer.Scripts.RT_Scene;
 using _Project.Ray_Tracer.Scripts.RT_Scene.RT_Camera;
@@ -165,34 +166,29 @@ namespace _Project.Ray_Tracer.Scripts
             }
         }
 
-        [SerializeField, Range(1, 1000)] private int nrRandomWalksMSRender = 100;
+        [SerializeField, Range(1, 20)] private int nrRandomWalksMSRender = 5;
 
         public int NrRandomWalksMSRender
         {
             get => nrRandomWalksMSRender;
-            set
-            {
-                if (value == nrRandomWalksMSRender) return;
-                nrRandomWalksMSRender = value;
-                OnRayTracerChanged?.Invoke();
-            }
+            set => nrRandomWalksMSRender = value;
         }
 
-        public enum PhaseFunctionMSType
+        public enum PhaseFunctionType
         {
             Isotropic,
-            HenyeyGreenstein
+            HenyeyGreenstein,
         }
 
-        [SerializeField] private PhaseFunctionMSType phaseFunctionMS = PhaseFunctionMSType.HenyeyGreenstein;
+        [SerializeField] private PhaseFunctionType phaseFunction = PhaseFunctionType.Isotropic;
 
-        public PhaseFunctionMSType PhaseFunctionMS
+        public PhaseFunctionType PhaseFunction
         {
-            get => phaseFunctionMS;
+            get => phaseFunction;
             set
             {
-                if (value == phaseFunctionMS) return;
-                phaseFunctionMS = value;
+                if (value == phaseFunction) return;
+                phaseFunction = value;
                 OnRayTracerChanged?.Invoke();
             }
         }
@@ -419,10 +415,26 @@ namespace _Project.Ray_Tracer.Scripts
             });
         }
 
-        // TODO: add Henyey-Greenstein phase function
-        private static float Phase()
+        private float GetPhase(float cosAngle, float g)
+        {
+            return (phaseFunction) switch
+            {
+                PhaseFunctionType.Isotropic => IsotropicPhase(),
+                PhaseFunctionType.HenyeyGreenstein => HenyeyGreensteinPhase(cosAngle, g),
+                _ => throw new ArgumentOutOfRangeException(nameof(phaseFunction), phaseFunction, "invalid enum value")
+            };
+        }
+
+        private static float IsotropicPhase()
         {
             return 1 / (4 * Mathf.PI);
+        }
+
+        private static float HenyeyGreensteinPhase(float cosAngle, float g)
+        {
+            if (g == 0) return IsotropicPhase();
+            float denominator = 1 + g * g - 2 * g * cosAngle;
+            return 1 / (4 * Mathf.PI) * (1 - g * g) / Mathf.Pow(denominator, 1.5f);
         }
 
         // TODO: add documentation
@@ -437,7 +449,7 @@ namespace _Project.Ray_Tracer.Scripts
             int nrSteps = Mathf.CeilToInt(entryExitDistance / stepSizeSS);
             float stride = entryExitDistance / nrSteps;
 
-            float transparency = 1; // fully transparent
+            float transmittance = 1; // fully transparent
             Color result = Color.black;
 
             // ray march from enter to exit hit
@@ -446,35 +458,47 @@ namespace _Project.Ray_Tracer.Scripts
             {
                 float distanceFromEntry = stride * step;
                 Vector3 rayOrigin = hit.point + (distanceFromEntry * direction);
-                // TODO: jitter sample position to avoid banding?
                 Vector3 samplePos = rayOrigin + (0.5f * stride * direction);
+                // to jitter the sample positions, use this line:
+                // Vector3 samplePos = rayOrigin + (Random.value * stride * direction);
 
-                RTRay newRay = new(rayOrigin, direction, stepSizeSS, Color.black, RTRay.RayType.Volume);
-                newRay.AddSample(fracOfLength: 0f);
+                RTRay newRay = new(rayOrigin, direction, stride, Color.black, RTRay.RayType.Volume);
+                newRay.AddSample(fracOfLength: 0.5f);
                 TreeNode<RTRay> newRayNode = new(newRay);
                 prevNode.AddChild(newRayNode);
 
-                // evaluate density at sample position
                 float density = volume.DensityAt(samplePos);
-                float sampleAttenuation = Mathf.Exp(-stepSizeSS * density * volume.ExtinctionAt(samplePos));
-                transparency *= sampleAttenuation; // attenuation due to absorption and out-scattering
+                if (density == 0f)
+                {
+                    prevNode = newRayNode;
+                    continue;
+                }
+
+                // emission
+                result += transmittance * volume.EmissionOf(density) * stride;
 
                 // in-scattering
-                // TODO: extend to handle multiple lights
+                // TODO: handle spot and area lights
                 // TODO: extend to handle objects in the way, to let them cast shadows on the volume
                 // TODO: extend to handle overlapping volumes
-                RTPointLight light = Scene.PointLights[0];
-                Vector3 lightDirection = (light.Position - samplePos).normalized;
-                hit.collider.Raycast(new Ray(samplePos, lightDirection), out RaycastHit exitHitLight,
-                    Mathf.Infinity); // ignores overlapping volumes/objects
-
-                if (density > 0)
+                List<RTPointLight> lights = Scene.PointLights;
+                foreach (RTPointLight light in lights)
                 {
+                    // calculate distance to exit of volume or light, whichever is closer
+                    Vector3 sampleToLight = (light.Position - samplePos);
+                    float distanceToLight = sampleToLight.magnitude;
+                    Vector3 lightDirection = sampleToLight.normalized;
+                    if (Physics.Raycast(samplePos, lightDirection, out RaycastHit _, distanceToLight,
+                            RayTracerLayer))
+                        continue; // hit an object in the way
+                    volume.Intersect(samplePos, lightDirection, out RaycastHit exitHitLight, Mathf.Infinity);
+                    float distanceToExitOrLight = Mathf.Min(distanceToLight, exitHitLight.distance);
+
                     // TODO: these are light rays, so instead of coding them again, we should probably make all light
                     // rays in the scene attenuate and just shoot one of those here.
 
-                    int nrStepsLight = Mathf.CeilToInt(exitHitLight.distance / stepSizeSS);
-                    float strideLight = exitHitLight.distance / nrStepsLight;
+                    int nrStepsLight = Mathf.CeilToInt(distanceToExitOrLight / stepSizeSS);
+                    float strideLight = distanceToExitOrLight / nrStepsLight;
                     float lightTransmittance = 1f;
 
                     TreeNode<RTRay> prevLightRayNode = newRayNode;
@@ -490,13 +514,20 @@ namespace _Project.Ray_Tracer.Scripts
                         TreeNode<RTRay> newLightRayNode = new(newLightRay);
                         prevLightRayNode.AddChild(newLightRayNode);
 
-                        float extinctionLight = volume.ExtinctionAt(lightSamplePos);
-                        if (extinctionLight > 0)
-                            lightTransmittance *= Mathf.Exp(-strideLight * extinctionLight);
+                        // absorption and out-scattering
+                        float densityLight = volume.DensityAt(lightSamplePos);
+                        if (densityLight == 0f)
+                        {
+                            prevLightRayNode = newLightRayNode;
+                            continue;
+                        }
 
+                        float extinctionLight = volume.ExtinctionOf(densityLight);
+                        float sampleAttenuationLight = Mathf.Exp(-strideLight * extinctionLight);
+                        lightTransmittance *= sampleAttenuationLight;
+                        // russian roulette (might need an update to stay unbiased!)
                         if (lightTransmittance < 0.001f)
                         {
-                            newRay.AddAbsorption();
                             lightTransmittance = 0f;
                             break;
                         }
@@ -505,26 +536,52 @@ namespace _Project.Ray_Tracer.Scripts
                     }
 
                     float scatteringAtSample = volume.ScatteringAt(samplePos);
-                    result += light.Color * lightTransmittance * Phase() * scatteringAtSample * transparency * stride *
-                              density;
+
+                    Vector3 entryDirection = -direction.normalized;
+                    float cosAngle = Vector3.Dot(entryDirection, lightDirection);
+                    float phaseAtSample = GetPhase(cosAngle, volume.G);
+
+                    Color colorToAdd = light.Color * lightTransmittance * phaseAtSample * scatteringAtSample *
+                                       transmittance *
+                                       stride * density;
+                    Debug.Log(colorToAdd.r);
+                    result += colorToAdd;
 
                     // final ray to light
-                    float distanceExitToLight = (light.Position - exitHitLight.point).magnitude;
-                    prevLightRayNode.AddChild(new RTRay(exitHitLight.point, lightDirection, distanceExitToLight,
-                        Color.black, RTRay.RayType.Light));
+                    if (lightTransmittance > 0f)
+                    {
+                        float distanceExitToLight = (light.Position - exitHitLight.point).magnitude;
+                        prevLightRayNode.AddChild(new RTRay(exitHitLight.point, lightDirection, distanceExitToLight,
+                            Color.black, RTRay.RayType.Light));
+                    }
                 }
 
-                // TODO: russian roulette?
+                // absorption and out-scattering
+                float sampleAttenuation = Mathf.Exp(-stride * volume.ExtinctionOf(density));
+
+                // update transparency for the next step
+                transmittance *= sampleAttenuation;
+
+                if (transmittance < 0.001f)
+                {
+                    transmittance = 0f;
+                    break;
+                }
 
                 prevNode = newRayNode;
+            }
+
+            if (transmittance == 0f)
+            {
+                rayTree.Data.Color = Color.black;
+                return rayTree;
             }
 
             Vector3 exitHitPointOffset = exitHit.point + direction * 0.001f;
             TreeNode<RTRay> afterVolumeRay = Trace(exitHitPointOffset, direction, depth, RTRay.RayType.Normal);
             prevNode.AddChild(afterVolumeRay);
-
             Color afterVolumeColor = afterVolumeRay.Data.Color;
-            Color color = (afterVolumeColor * transparency) + result;
+            Color color = (afterVolumeColor * transmittance) + result;
             rayTree.Data.Color = color;
             return rayTree;
         }
@@ -669,11 +726,11 @@ namespace _Project.Ray_Tracer.Scripts
                 pathTransmittance *= albedo;
 
                 // update direction
-                currentDirection = phaseFunctionMS switch
+                currentDirection = phaseFunction switch
                 {
-                    PhaseFunctionMSType.Isotropic => UpdateDirectionRandom(),
-                    PhaseFunctionMSType.HenyeyGreenstein => UpdateDirectionHG(currentDirection, volume.G),
-                    _ => throw new ArgumentOutOfRangeException(nameof(phaseFunctionMS), phaseFunctionMS,
+                    PhaseFunctionType.Isotropic => UpdateDirectionRandom(),
+                    PhaseFunctionType.HenyeyGreenstein => UpdateDirectionHG(currentDirection, volume.G),
+                    _ => throw new ArgumentOutOfRangeException(nameof(phaseFunction), phaseFunction,
                         "invalid enum value")
                 };
 
@@ -918,9 +975,10 @@ namespace _Project.Ray_Tracer.Scripts
             yield return null;
         }
 
-        // TODO: add documentation
-        private Color VolumeRayMarch_SingleScattering_Image(RTVolume volume,
-            RaycastHit hit, Vector3 direction, int depth)
+        // TODO: adjust contribution of different effects. i think currently, scattering has a negligible effect,
+        // resulting in no shadows on the volume (even tho we have a big ass loop).
+        private Color VolumeRayMarch_SingleScattering_Image(RTVolume volume, RaycastHit hit, Vector3 direction,
+            int depth)
         {
             Vector3 hitPointOffset = hit.point + direction * 0.001f;
             hit.collider.Raycast(new Ray(hitPointOffset, direction), out RaycastHit exitHit,
@@ -938,30 +996,34 @@ namespace _Project.Ray_Tracer.Scripts
             {
                 float distanceFromEntry = stride * step;
                 Vector3 rayOrigin = hit.point + (distanceFromEntry * direction);
-                // TODO: jitter sample position to avoid banding?
-                Vector3 samplePos = rayOrigin + (0.5f * stride * direction);
+                Vector3 samplePos = rayOrigin + (Random.value * stride * direction); // jitter using random value
 
-                // absorption and out-scattering
                 float density = volume.DensityAt(samplePos);
-                float sampleAttenuation = Mathf.Exp(-stepSizeSS * density * volume.ExtinctionAt(samplePos));
-                transmittance *= sampleAttenuation; // attenuation due to extinction (absorption and out-scattering)
+                if (density == 0f) continue;
+
+                // emission
+                result += transmittance * volume.EmissionOf(density) * stride;
 
                 // in-scattering
-                // TODO: extend to handle multiple lights
-                // TODO: extend to handle objects in the way, to let them cast shadows on the volume
+                // TODO: handle spot and area lights
                 // TODO: extend to handle overlapping volumes
-                RTPointLight light = Scene.PointLights[0];
-                Vector3 lightDirection = (light.Position - samplePos).normalized;
-                hit.collider.Raycast(new Ray(samplePos, lightDirection), out RaycastHit exitHitLight,
-                    Mathf.Infinity); // ignores overlapping volumes/objects
-
-                if (density > 0)
+                // TODO: these are light rays, so instead of coding them again, we should probably make all light
+                // rays in the scene attenuate and just shoot one of those here.
+                List<RTPointLight> lights = Scene.PointLights;
+                foreach (RTPointLight light in lights)
                 {
-                    // TODO: these are light rays, so instead of coding them again, we should probably make all light
-                    // rays in the scene attenuate and just shoot one of those here.
+                    // calculate distance to exit of volume or light, whichever is closer
+                    Vector3 sampleToLight = (light.Position - samplePos);
+                    float distanceToLight = sampleToLight.magnitude;
+                    Vector3 lightDirection = sampleToLight.normalized;
+                    if (Physics.Raycast(samplePos, lightDirection, out RaycastHit _, distanceToLight,
+                            RayTracerLayer))
+                        continue; // hit an object in the way
+                    volume.Intersect(samplePos, lightDirection, out RaycastHit exitHitLight, Mathf.Infinity);
+                    float distanceToExitOrLight = Mathf.Min(distanceToLight, exitHitLight.distance);
 
-                    int nrStepsLight = Mathf.CeilToInt(exitHitLight.distance / stepSizeSS);
-                    float strideLight = exitHitLight.distance / nrStepsLight;
+                    int nrStepsLight = Mathf.CeilToInt(distanceToExitOrLight / stepSizeSS);
+                    float strideLight = distanceToExitOrLight / nrStepsLight;
                     float lightTransmittance = 1f;
 
                     for (int stepLight = 0; stepLight < nrStepsLight; stepLight++)
@@ -970,10 +1032,13 @@ namespace _Project.Ray_Tracer.Scripts
                         Vector3 lightRayOrigin = samplePos + (lightDirection * distanceFromSample);
                         Vector3 lightSamplePos = lightRayOrigin + (0.5f * strideLight * lightDirection);
 
-                        float extinctionLight = volume.ExtinctionAt(lightSamplePos);
-                        if (extinctionLight > 0)
-                            lightTransmittance *= Mathf.Exp(-strideLight * extinctionLight);
-
+                        // absorption and out-scattering
+                        float densityLight = volume.DensityAt(lightSamplePos);
+                        if (densityLight == 0) continue;
+                        float extinctionLight = volume.ExtinctionOf(densityLight);
+                        float sampleAttenuationLight = Mathf.Exp(-strideLight * extinctionLight);
+                        lightTransmittance *= sampleAttenuationLight;
+                        // russian roulette (might need an update to stay unbiased!)
                         if (lightTransmittance < 0.001f)
                         {
                             lightTransmittance = 0f;
@@ -982,17 +1047,33 @@ namespace _Project.Ray_Tracer.Scripts
                     }
 
                     float scatteringAtSample = volume.ScatteringAt(samplePos);
-                    result += light.Color * lightTransmittance * Phase() * scatteringAtSample * transmittance * stride *
-                              density;
+
+                    Vector3 entryDirection = -direction.normalized;
+                    float cosAngle = Vector3.Dot(entryDirection, lightDirection);
+                    float phaseAtSample = GetPhase(cosAngle, volume.G);
+
+                    result += light.Color * lightTransmittance * phaseAtSample * scatteringAtSample *
+                              transmittance * stride * density;
                 }
 
-                // TODO: russian roulette?
+                // absorption and out-scattering
+                float sampleAttenuation = Mathf.Exp(-stride * volume.ExtinctionOf(density));
+
+                // update transparency for the next step
+                transmittance *= sampleAttenuation;
+
+                if (transmittance < 0.001f)
+                {
+                    transmittance = 0f;
+                    break;
+                }
             }
 
-            Vector3 exitHitPointOffset = exitHit.point + direction * 0.001f;
-            TreeNode<RTRay> afterVolumeRay = Trace(exitHitPointOffset, direction, depth, RTRay.RayType.Normal);
+            if (transmittance == 0f)
+                return Color.black;
 
-            Color afterVolumeColor = afterVolumeRay.Data.Color;
+            Vector3 exitHitPointOffset = exitHit.point + direction * 0.001f;
+            Color afterVolumeColor = TraceImage(exitHitPointOffset, direction, depth);
             Color color = (afterVolumeColor * transmittance) + result;
             return color;
         }
@@ -1002,10 +1083,10 @@ namespace _Project.Ray_Tracer.Scripts
         {
             Color accumulatedColor = Color.black;
 
-            for (int walk = 0; walk < nrRandomWalksMSRender; walk++)
+            for (int walk = 0; walk < NrRandomWalksMSRender; walk++)
                 accumulatedColor += MSSingleRandomWalk_Image(volume, hit.point, inDirection, depth);
 
-            accumulatedColor /= nrRandomWalksMSScene;
+            accumulatedColor /= nrRandomWalksMSRender;
             accumulatedColor.a = 1f;
 
             return accumulatedColor;
@@ -1023,6 +1104,7 @@ namespace _Project.Ray_Tracer.Scripts
             for (int step = 0; step < maxSteps; step++)
             {
                 float stepSize = volume.GetStepLength(prevPos, currentDirection);
+                // Debug.Log(stepSize);
                 Vector3 currentPos = prevPos + (stepSize * currentDirection);
 
                 if (!volume.IsInBounds(currentPos))
@@ -1047,11 +1129,11 @@ namespace _Project.Ray_Tracer.Scripts
                 pathTransmittance *= albedo;
 
                 // update direction
-                currentDirection = phaseFunctionMS switch
+                currentDirection = phaseFunction switch
                 {
-                    PhaseFunctionMSType.Isotropic => UpdateDirectionRandom(),
-                    PhaseFunctionMSType.HenyeyGreenstein => UpdateDirectionHG(currentDirection, volume.G),
-                    _ => throw new ArgumentOutOfRangeException(nameof(phaseFunctionMS), phaseFunctionMS,
+                    PhaseFunctionType.Isotropic => UpdateDirectionRandom(),
+                    PhaseFunctionType.HenyeyGreenstein => UpdateDirectionHG(currentDirection, volume.G),
+                    _ => throw new ArgumentOutOfRangeException(nameof(phaseFunction), phaseFunction,
                         "invalid enum value")
                 };
 
